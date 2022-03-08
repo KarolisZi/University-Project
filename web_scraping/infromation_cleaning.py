@@ -16,6 +16,7 @@ DATA CLEANING PART FOR HOME PAGE DATA
 # Takes a column and extracts data from it
 def clean_post_information_data(column):
     url = column[2].find('a').get('href')
+    topic_id = extract_id_from_url(url)
     original_topic = column[2].find('a').text
     topic = clean_topic(original_topic)
     author = column[3].text.strip('\n').strip('\t').rstrip()
@@ -24,7 +25,15 @@ def clean_post_information_data(column):
     last_post_time = convert_time(column[6].text.splitlines()[3].strip('\n').strip('\t').rstrip())
     last_post_author = clean_last_author(column[6].text.splitlines()[4])
 
-    return [url, original_topic, topic, author, replies, views, last_post_time, last_post_author]
+    return [topic_id, url, original_topic, topic, author, replies, views, last_post_time, last_post_author]
+
+
+def extract_id_from_url(url):
+    topic_id_12 = url.split(".")
+    topic_id_1_temp = topic_id_12[-2].split("=")
+    topic_id_1 = topic_id_1_temp[-1]
+
+    return topic_id_1
 
 
 # Converts time to 24-hour format and date to number format

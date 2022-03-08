@@ -8,10 +8,10 @@ def insert_entry(comment, table_name):
         connection = connect_to_database.connect_to_the_database()
         cursor = connection.cursor()
 
-        postgres_insert_query = """ INSERT INTO """ + table_name + """(url, original_topic, topic, author, replies,
-         views, last_post_time, last_post_author) VALUES (%s,%s,%s, %s, %s, %s, %s, %s)"""
+        postgres_insert_query = """ INSERT INTO """ + table_name + """(topic_id, url, original_topic, topic, author, replies,
+         views, last_post_time, last_post_author) VALUES (%s,%s,%s, %s, %s, %s, %s, %s, %s)"""
 
-        record_to_insert = (comment[0], comment[1], comment[2], comment[3], comment[4], comment[5], comment[6], comment[7])
+        record_to_insert = (comment[0], comment[1], comment[2], comment[3], comment[4], comment[5], comment[6], comment[7], comment[8])
 
         cursor.execute(postgres_insert_query, record_to_insert)
         connection.commit()
@@ -31,7 +31,7 @@ def fetch_all_id_url(table_name):
         connection = connect_to_database.connect_to_the_database()
         cursor = connection.cursor()
 
-        postgres_insert_query = """ SELECT id, url from """ + table_name
+        postgres_insert_query = """ SELECT topic_id, url from """ + table_name
 
         cursor.execute(postgres_insert_query)
 

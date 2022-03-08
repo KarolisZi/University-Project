@@ -64,7 +64,7 @@ def fetch_post_from_url(url):
             col = td.find_all('td')
             if len(col) == 7:
                 cleaned_data = infromation_cleaning.clean_post_information_data(col)
-                if "BOUNTY" in cleaned_data[1] or "Bounty" in cleaned_data[1]:
+                if "BOUNTY" in cleaned_data[2].upper():
                     results.append(cleaned_data)
 
     return results

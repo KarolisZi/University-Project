@@ -10,7 +10,7 @@ def create_home_page_database(table_name):
 
         postgres_insert_query = """
         CREATE TABLE """ + table_name + """ (
-        id SERIAL PRIMARY KEY,
+        topic_id SERIAL PRIMARY KEY,
         url VARCHAR(64) ,
         original_topic VARCHAR(255),
         topic VARCHAR(255),
