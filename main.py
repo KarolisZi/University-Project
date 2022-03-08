@@ -1,16 +1,16 @@
-# This is a sample Python script.
+from control import control
+from values import constant
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
-
-
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
-
-
-# Press the green button in the gutter to run the script.
+# Run testing
 if __name__ == '__main__':
-    print_hi('PyCharm')
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+    # Create a database table from the home page information
+    # "one" - one home page of posts
+    # "all" - all post pages
+    control.populate_database_main_page("one", constant.TABLE_NAME_HOME_PAGE, constant.FIRST_PAGE_URL)
+
+    # Create a database table from the comment section
+    # "one_one" - one post, once comment page
+    # "one_all" - one post, all comment pages
+    # "all_all" - all posts, all comment pages
+    control.populate_database_comment_page("one_one", constant.TABLE_NAME_COMMENT_PAGE)
