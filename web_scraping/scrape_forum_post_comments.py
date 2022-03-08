@@ -51,7 +51,6 @@ def generate_all_comment_page_links(numbers):
     return links
 
 
-# Get all comments and their post times from a given url
 def fetch_comments_from_url(url):
     comments = []
 
@@ -65,7 +64,7 @@ def fetch_comments_from_url(url):
         for br in header_and_post[i]('br'):
             br.replace_with('\n')
 
-        comments.append(header_and_post[i].text)
+        comments.append(header_and_post[i])
 
     # Clean the data parsed with lxml parser
     results = infromation_cleaning.clean_comment_section_data(comments)

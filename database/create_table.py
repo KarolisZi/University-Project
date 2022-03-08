@@ -47,6 +47,7 @@ def create_comments_database(table_name):
         postgres_insert_query = """
                 CREATE TABLE """ + table_name + """ (
                 post_id VARCHAR(255),
+                comment_id VARCHAR(255),
                 forum_username VARCHAR(255),
                 forum_profile_url VARCHAR(255),
                 telegram_username VARCHAR(255),

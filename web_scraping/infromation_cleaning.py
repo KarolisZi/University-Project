@@ -113,36 +113,26 @@ def clean_comment_section_data(comments):
     proof_comments = []
     other_comments = []
 
-    for i in range(0, len(comments)):
+    for comment in comments:
 
-        if "PROOF" in str(comments[i].upper()):
-            proof_comments.append(comments[i])
+        if "PROOF" in str(comment.text.upper()):
+            proof_comments.append(comment)
         else:
-            other_comments.append(comments[i])
+            other_comments.append(comment)
 
-    formated_proof_comments = format_proof_comments(proof_comments)
-
-    analysed_proof_comments = extract_data_from_proof_comments(formated_proof_comments)
+    analysed_proof_comments = extract_data_from_proof_comments(proof_comments)
 
     return analysed_proof_comments
-
-
-def format_proof_comments(proof_comments):
-    results = []
-
-    # Analyse temp one by one
-    for i in range(0, len(proof_comments)):
-        comment = proof_comments[i].split("\n")
-
-        results.append(comment)
-
-    return results
 
 
 def extract_data_from_proof_comments(proof_comments):
     results = []
 
-    for i in range(0, len(proof_comments)):
+    for comment in proof_comments:
+
+        comment_id = comment.find('a', class_='message_number').text.replace("#", "")
+
+        comment = comment.text.split("\n")
 
         forum_username = ""
         profile_url = ""
@@ -152,28 +142,29 @@ def extract_data_from_proof_comments(proof_comments):
         address = ""
         data = []
 
-        for j in range(0, len(proof_comments[i])):
+        for text in comment:
 
-            if ("FORUM" in proof_comments[i][j].upper() or "BITCOINTALK" in proof_comments[i][j].upper() or "BITCOIN TALK" in proof_comments[i][j].upper()) and "USERNAME" in proof_comments[i][j].upper():
-                temp = proof_comments[i][j].split(":")
+            if (
+                    "FORUM" in text.upper() or "BITCOINTALK" in text.upper() or "BITCOIN TALK" in text.upper()) and "USERNAME" in text.upper():
+                temp = text.split(":")
                 forum_username = temp[-1].rstrip()
-            elif ("LINK" in proof_comments[i][j].upper() or "URL" in proof_comments[i][j].upper()) and "PROFILE" in proof_comments[i][j].upper():
-                temp = proof_comments[i][j].split(":")
+            elif ("LINK" in text.upper() or "URL" in text.upper()) and "PROFILE" in text.upper():
+                temp = text.split(":")
                 profile_url = temp[-1].rstrip()
-            elif "TELEGRAM" in proof_comments[i][j].upper():
-                temp = proof_comments[i][j].split(":")
+            elif "TELEGRAM" in text.upper():
+                temp = text.split(":")
                 telegram_username = temp[-1].rstrip()
-            elif "CAMPAIGN" in proof_comments[i][j].upper():
-                temp = proof_comments[i][j].split(":")
+            elif "CAMPAIGN" in text.upper():
+                temp = text.split(":")
                 campaigns = temp[-1].rstrip()
-            elif "ADDRESS" in proof_comments[i][j].upper():
-                temp = proof_comments[i][j].split(":")
+            elif "ADDRESS" in text.upper():
+                temp = text.split(":")
                 address = temp[-1].rstrip()
-            elif "JANUARY" in proof_comments[i][j].upper() or "FEBRUARY" in proof_comments[i][j].upper() or "MARCH" in proof_comments[i][j].upper() or"APRIL" in proof_comments[i][j].upper() or"MAY" in proof_comments[i][j].upper() or"JUNE" in proof_comments[i][j].upper() or"JULY" in proof_comments[i][j].upper() or"AUGUST" in proof_comments[i][j].upper() or"SEPTEMBER" in proof_comments[i][j].upper() or"OCTOBER" in proof_comments[i][j].upper() or"NOVEMBER" in proof_comments[i][j].upper() or"DECEMBER" in proof_comments[i][j].upper():
-                time = proof_comments[i][j].rstrip()
+            elif "JANUARY" in text.upper() or "FEBRUARY" in text.upper() or "MARCH" in text.upper() or "APRIL" in text.upper() or "MAY" in text.upper() or "JUNE" in text.upper() or "JULY" in text.upper() or "AUGUST" in text.upper() or "SEPTEMBER" in text.upper() or "OCTOBER" in text.upper() or "NOVEMBER" in text.upper() or "DECEMBER" in text.upper():
+                time = text.rstrip()
             else:
-                data.append(proof_comments[i][j])
+                data.append(text)
 
-        results.append([forum_username, profile_url, telegram_username, campaigns, time, address])
+        results.append([comment_id, forum_username, profile_url, telegram_username, campaigns, time, address])
 
     return results
