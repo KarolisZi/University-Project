@@ -1,8 +1,11 @@
 import psycopg2
 from database import connect_to_database
+from values import constant
 
 
-def create_home_page_database(table_name):
+def create_home_page_database():
+
+    table_name = constant.TABLE_NAME_HOME_PAGE
     connection = connect_to_database.connect_to_the_database()
     cursor = connection.cursor()
 
@@ -10,15 +13,16 @@ def create_home_page_database(table_name):
 
         postgres_insert_query = """
         CREATE TABLE """ + table_name + """ (
-        topic_id SERIAL PRIMARY KEY,
-        url VARCHAR(64) ,
+        topic_id INTEGER,
+        url VARCHAR(64),
         original_topic VARCHAR(255),
         topic VARCHAR(255),
         author VARCHAR(64),
         replies INTEGER,
         views INTEGER,
         last_post_time VARCHAR(64),
-        last_post_author VARCHAR(64)
+        last_post_author VARCHAR(64),
+        PRIMARY KEY(topic_id)
         );
         """
 
@@ -38,25 +42,36 @@ def create_home_page_database(table_name):
             connection.close()
 
 
-def create_comments_database(table_name):
+def create_comments_database():
+
+    table_name = constant.TABLE_NAME_COMMENT_PAGE
     connection = connect_to_database.connect_to_the_database()
     cursor = connection.cursor()
 
     try:
 
-        postgres_insert_query = """
+        postgres_insert_query_1 = """
                 CREATE TABLE """ + table_name + """ (
-                post_id VARCHAR(255),
+                topic_id INTEGER,
                 comment_id VARCHAR(255),
                 forum_username VARCHAR(255),
                 forum_profile_url VARCHAR(255),
                 telegram_username VARCHAR(255),
                 campaigns VARCHAR(255),
-                post_time VARCHAR(255)
+                post_time VARCHAR(255),
+                PRIMARY KEY (topic_id, comment_id)
                 );
                 """
 
-        cursor.execute(postgres_insert_query)
+        postgres_insert_query_2 = """
+        ALTER TABLE """ + table_name + """ 
+        ADD CONSTRAINT fk_"""+constant.TABLE_NAME_HOME_PAGE+"""Table
+        FOREIGN KEY (topic_id) 
+        REFERENCES """ + constant.TABLE_NAME_HOME_PAGE + """ (topic_id)
+        """
+
+        cursor.execute(postgres_insert_query_1)
+        cursor.execute(postgres_insert_query_2)
 
         connection.commit()
 
