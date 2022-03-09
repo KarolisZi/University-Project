@@ -19,13 +19,14 @@ def fetch_last_comment_page_id(url):
     links = soup.find_all('a', class_='navPages')
 
     largest = 0
+    #topic_id_1 = 0
 
     # Post id number format in url: "topic=5386857.00"
     #                                       id_1  id_2
     # (id_1) is the topic number and (id_2) is the comment page number
-    for i in range(0, len(links)):
+    for link in links:
 
-        topic_id_12 = links[i].get('href').split(".")
+        topic_id_12 = link.get('href').split(".")
         topic_id_2 = topic_id_12[-1]
         topic_id_1_temp = topic_id_12[-2].split("=")
         topic_id_1 = topic_id_1_temp[-1]
@@ -51,22 +52,23 @@ def generate_all_comment_page_links(numbers):
     return links
 
 
-def fetch_comments_from_url(url):
+def fetch_comments_from_url(url, author):
     comments = []
 
     html_content = requests.get(url, headers).text
     soup = BeautifulSoup(html_content, "lxml")
 
-    header_and_post = soup.find_all("td", class_="td_headerandpost")
+    information = soup.find_all("td", class_="windowbg2")
 
-    for i in range(0, len(header_and_post)):
+    for record in information:
 
-        for br in header_and_post[i]('br'):
+        for br in record('br'):
             br.replace_with('\n')
 
-        comments.append(header_and_post[i])
+        comments.append(record)
 
     # Clean the data parsed with lxml parser
-    results = infromation_cleaning.clean_comment_section_data(comments)
+    results = infromation_cleaning.clean_comment_section_data(comments, author)
 
     return results
+

@@ -60,9 +60,8 @@ CONTROL OPERATIONS FOR THE COMMENT PAGE DATA
 """
 
 
-def create_one_post_one_page_comment_records_in_database(data, database_table_name):
-
-    comments = scrape_forum_post_comments.fetch_comments_from_url(data[0][1])
+def create_first_database_post_one_page_comment_records_in_database(data, database_table_name):
+    comments = scrape_forum_post_comments.fetch_comments_from_url(data[0][1], data[0][2])
 
     for comment in comments:
         crud_comment_data.insert_entry(data[0][0], comment, database_table_name)
@@ -70,8 +69,7 @@ def create_one_post_one_page_comment_records_in_database(data, database_table_na
     print("Inserting %s comments into table: %s" % (len(comments), database_table_name))
 
 
-def create_one_post__all_pages_comment_records_in_database(data, database_table_name):
-
+def create_first_database_post__all_pages_comment_records_in_database(data, database_table_name):
     # Get the number of the last comment page
     page_id = scrape_forum_post_comments.fetch_last_comment_page_id(data[0][1])
 
@@ -82,7 +80,7 @@ def create_one_post__all_pages_comment_records_in_database(data, database_table_
 
     for link in links:
 
-        comments = scrape_forum_post_comments.fetch_comments_from_url(link)
+        comments = scrape_forum_post_comments.fetch_comments_from_url(link, data[0][2])
 
         for comment in comments:
             crud_comment_data.insert_entry(data[0][0], comment, database_table_name)
@@ -90,8 +88,17 @@ def create_one_post__all_pages_comment_records_in_database(data, database_table_
         print("Inserting %s comments into table: %s" % (len(comments), database_table_name))
 
 
-def create_all_post_all_pages_comment_records_in_database(data, database_table_name):
+def create_all_post_first_page_comment_records_in_database(data, database_table_name):
+    for entry in data:
+        comments = scrape_forum_post_comments.fetch_comments_from_url(entry[1], entry[2])
 
+        for comment in comments:
+            crud_comment_data.insert_entry(entry[0], comment, database_table_name)
+
+        print("Inserting %s comments into table: %s" % (len(comments), database_table_name))
+
+
+def create_all_post_all_pages_comment_records_in_database(data, database_table_name):
     for entry in data:
         # Get the number of the last comment page
         page_id = scrape_forum_post_comments.fetch_last_comment_page_id(entry[1])
@@ -101,11 +108,7 @@ def create_all_post_all_pages_comment_records_in_database(data, database_table_n
 
         # Go through all comments in all pages and store them in the database
         for link in links:
-
-            comments = scrape_forum_post_comments.fetch_comments_from_url(link)
-
-            for comment in comments:
-                crud_comment_data.insert_entry(entry[0], comment, database_table_name)
+            comments = scrape_forum_post_comments.fetch_comments_from_url(link, entry[2])
 
             print("Inserting %s comments into table: %s" % (len(comments), database_table_name))
 
@@ -113,18 +116,20 @@ def create_all_post_all_pages_comment_records_in_database(data, database_table_n
 def populate_database_comment_page(check):
     """
 
-    :rtype: object
+    :type: object
     """
     # Fetch all URLs and IDs of the comments
-    data = crud_home_page_data.fetch_all_id_url(constant.TABLE_NAME_HOME_PAGE)
+    data = crud_home_page_data.fetch_all_id_url_author(constant.TABLE_NAME_HOME_PAGE)
 
     # Create database table for comments
     create_table.create_comments_database()
 
     match check:
         case "one_one":
-            create_one_post_one_page_comment_records_in_database(data, constant.TABLE_NAME_COMMENT_PAGE)
+            create_first_database_post_one_page_comment_records_in_database(data, constant.TABLE_NAME_COMMENT_PAGE)
         case "one_all":
-            create_one_post__all_pages_comment_records_in_database(data, constant.TABLE_NAME_COMMENT_PAGE)
+            create_first_database_post__all_pages_comment_records_in_database(data, constant.TABLE_NAME_COMMENT_PAGE)
+        case "all_one":
+            create_all_post_first_page_comment_records_in_database(data, constant.TABLE_NAME_COMMENT_PAGE)
         case "all_all":
             create_all_post_all_pages_comment_records_in_database(data, constant.TABLE_NAME_COMMENT_PAGE)

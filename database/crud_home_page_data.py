@@ -26,12 +26,12 @@ def insert_entry(comment, table_name):
             connection.close()
 
 
-def fetch_all_id_url(table_name):
+def fetch_all_id_url_author(table_name):
     try:
         connection = connect_to_database.connect_to_the_database()
         cursor = connection.cursor()
 
-        postgres_insert_query = """ SELECT topic_id, url from """ + table_name
+        postgres_insert_query = """ SELECT topic_id, url, author from """ + table_name
 
         cursor.execute(postgres_insert_query)
 

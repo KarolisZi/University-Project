@@ -19,10 +19,10 @@ def clean_post_information_data(column):
     topic_id = extract_id_from_url(url)
     original_topic = column[2].find('a').text
     topic = clean_topic(original_topic)
-    author = column[3].text.strip('\n').strip('\t').rstrip()
-    replies = column[4].text.strip('\n').strip('\t').rstrip()
-    views = column[5].text.strip('\n').strip('\t').rstrip()
-    last_post_time = convert_time(column[6].text.splitlines()[3].strip('\n').strip('\t').rstrip())
+    author = column[3].text.strip('\n').strip('\t').rstrip().lstrip()
+    replies = column[4].text.strip('\n').strip('\t').rstrip().lstrip()
+    views = column[5].text.strip('\n').strip('\t').rstrip().lstrip()
+    last_post_time = convert_time(column[6].text.splitlines()[3].strip('\n').strip('\t').rstrip()).lstrip()
     last_post_author = clean_last_author(column[6].text.splitlines()[4])
 
     return [topic_id, url, original_topic, topic, author, replies, views, last_post_time, last_post_author]
@@ -37,7 +37,6 @@ def extract_id_from_url(url):
 
 
 # Converts time to 24-hour format and date to number format
-# Converts TODAY into a date and returns a "true" check for re-scraping
 def convert_time(last_post_time):
     if "Today" in last_post_time:
 
@@ -118,7 +117,7 @@ DATA CLEANING PART FOR COMMENT SECTION DATA
 """
 
 
-def clean_comment_section_data(comments):
+def clean_comment_section_data(comments, author):
     proof_comments = []
     other_comments = []
 
@@ -129,51 +128,59 @@ def clean_comment_section_data(comments):
         else:
             other_comments.append(comment)
 
-    analysed_proof_comments = extract_data_from_proof_comments(proof_comments)
+    analysed_proof_comments = extract_data_from_proof_comments(proof_comments, author)
 
     return analysed_proof_comments
 
 
-def extract_data_from_proof_comments(proof_comments):
+def extract_data_from_proof_comments(proof_comments, author):
     results = []
+    eth_patter = re.compile('/^0x[a-fA-F0-9]{40}$/g')
 
     for comment in proof_comments:
 
-        comment_id = comment.find('a', class_='message_number').text.replace("#", "")
-
-        comment = comment.text.split("\n")
-
-        forum_username = ""
-        profile_url = ""
         telegram_username = ""
         campaigns = ""
-        time = ""
         address = ""
         data = []
 
-        for text in comment:
+        # Retrieve forum username and link
+        poster_info = comment.find('td', class_="poster_info")
+        forum_username = poster_info.find('a').text
+        profile_url = poster_info.find('a').get('href')
 
-            if (
-                    "FORUM" in text.upper() or "BITCOINTALK" in text.upper() or "BITCOIN TALK" in text.upper()) and "USERNAME" in text.upper():
-                temp = text.split(":")
-                forum_username = temp[-1].rstrip()
-            elif ("LINK" in text.upper() or "URL" in text.upper()) and "PROFILE" in text.upper():
-                temp = text.split(":")
-                profile_url = temp[-1].rstrip()
-            elif "TELEGRAM" in text.upper():
-                temp = text.split(":")
-                telegram_username = temp[-1].rstrip()
-            elif "CAMPAIGN" in text.upper():
-                temp = text.split(":")
-                campaigns = temp[-1].rstrip()
-            elif "ADDRESS" in text.upper():
-                temp = text.split(":")
-                address = temp[-1].rstrip()
-            elif "JANUARY" in text.upper() or "FEBRUARY" in text.upper() or "MARCH" in text.upper() or "APRIL" in text.upper() or "MAY" in text.upper() or "JUNE" in text.upper() or "JULY" in text.upper() or "AUGUST" in text.upper() or "SEPTEMBER" in text.upper() or "OCTOBER" in text.upper() or "NOVEMBER" in text.upper() or "DECEMBER" in text.upper():
-                time = text.rstrip()
-            else:
-                data.append(text)
+        # Retrieve post and header
+        header_post = comment.find('td', class_="td_headerandpost")
 
-        results.append([comment_id, forum_username, profile_url, telegram_username, campaigns, time, address])
+        # Retrieve comment_id from the header
+        comment_id = header_post.find('a', class_='message_number').text.replace("#", "")
+
+        # Retrieve time from the header
+        time = header_post.find('div', class_='smalltext').text
+
+        # Retrieve post from header and post
+        post = header_post.find('div', class_='post').text.split("\n")
+
+        if forum_username != author:
+
+            for text in post:
+
+                # Telegram user name
+                if "TELEGRAM" and "USER" and "NAME" in text.upper():
+                    temp = text.replace(":", " : ")
+                    temp = temp.split(":")
+                    telegram_username = temp[-1].rstrip().lstrip()
+
+                elif "CAMPAIGN" in text.upper():
+                    temp = text.split(":")
+                    campaigns = temp[-1].rstrip().lstrip()
+                elif "ADDRESS" in text.upper():
+                    temp = text.split(":")
+                    if eth_patter.match(temp[-1].rstrip().lstrip()):
+                        address = temp[-1].rstrip().lstrip()
+                else:
+                    data.append(text)
+
+            results.append([comment_id, forum_username, profile_url, telegram_username, campaigns, time, address])
 
     return results
