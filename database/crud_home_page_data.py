@@ -1,25 +1,30 @@
 import psycopg2
 from database import connect_to_database
+from values import constant
 
 
-def insert_entry(comment, table_name):
+def insert_entry(topics):
     try:
         # Connect to the database
         connection = connect_to_database.connect_to_the_database()
         cursor = connection.cursor()
 
-        postgres_insert_query = """ INSERT INTO """ + table_name + """(topic_id, url, original_topic, topic, author, replies,
+        postgres_insert_query = """ INSERT INTO """ + constant.TABLE_NAME_HOME_PAGE + """(topic_id, url, original_topic, topic, author, replies,
          views, last_post_time, last_post_author) VALUES (%s,%s,%s, %s, %s, %s, %s, %s, %s)"""
 
-        record_to_insert = (comment[0], comment[1], comment[2], comment[3], comment[4], comment[5], comment[6], comment[7], comment[8])
+        for topic in topics:
 
-        cursor.execute(postgres_insert_query, record_to_insert)
-        connection.commit()
+            record_to_insert = (topic[0], topic[1], topic[2], topic[3], topic[4], topic[5], topic[6], topic[7], topic[8])
+            cursor.execute(postgres_insert_query, record_to_insert)
+            connection.commit()
 
     except (Exception, psycopg2.Error) as error:
         print("Failed to insert record into the table", error)
 
     finally:
+
+        print("Inserted %s posts into table: %s" % (len(topics), constant.TABLE_NAME_HOME_PAGE))
+
         # closing database connection.
         if connection:
             cursor.close()

@@ -4,7 +4,6 @@ from values import constant
 
 
 def create_home_page_database():
-
     table_name = constant.TABLE_NAME_HOME_PAGE
     connection = connect_to_database.connect_to_the_database()
     cursor = connection.cursor()
@@ -42,9 +41,8 @@ def create_home_page_database():
             connection.close()
 
 
-def create_comments_database():
-
-    table_name = constant.TABLE_NAME_COMMENT_PAGE
+def create_comments_proof_database():
+    table_name = constant.TABLE_NAME_COMMENT_PAGE_PROOF
     connection = connect_to_database.connect_to_the_database()
     cursor = connection.cursor()
 
@@ -65,7 +63,52 @@ def create_comments_database():
 
         postgres_insert_query_2 = """
         ALTER TABLE """ + table_name + """ 
-        ADD CONSTRAINT fk_"""+constant.TABLE_NAME_HOME_PAGE+"""Table
+        ADD CONSTRAINT fk_""" + constant.TABLE_NAME_HOME_PAGE + """Table
+        FOREIGN KEY (topic_id) 
+        REFERENCES """ + constant.TABLE_NAME_HOME_PAGE + """ (topic_id)
+        """
+
+        cursor.execute(postgres_insert_query_1)
+        cursor.execute(postgres_insert_query_2)
+
+        connection.commit()
+
+        print("Table " + table_name + " has been created successfully!")
+
+    except (Exception, psycopg2.Error) as error:
+        print("Failed to create comment database table", error)
+    finally:
+        # closing database connection.
+        if connection:
+            cursor.close()
+            connection.close()
+
+
+def create_comments_participation_database():
+    table_name = constant.TABLE_NAME_COMMENT_PAGE_PARTICIPATION
+    connection = connect_to_database.connect_to_the_database()
+    cursor = connection.cursor()
+
+    try:
+
+        postgres_insert_query_1 = """
+                CREATE TABLE """ + table_name + """ (
+                topic_id INTEGER,
+                comment_id VARCHAR(255),
+                forum_username VARCHAR(255),
+                forum_profile_url VARCHAR(255),
+                week VARCHAR(255),
+                social_media_profile_url VARCHAR(255),
+                social_media_links TEXT,
+                participation TEXT,
+                post_time VARCHAR(255),
+                PRIMARY KEY (topic_id, comment_id)
+                );
+                """
+
+        postgres_insert_query_2 = """
+        ALTER TABLE """ + table_name + """ 
+        ADD CONSTRAINT fk_""" + constant.TABLE_NAME_HOME_PAGE + """Table
         FOREIGN KEY (topic_id) 
         REFERENCES """ + constant.TABLE_NAME_HOME_PAGE + """ (topic_id)
         """
