@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup
 import requests
-from web_scraping import infromation_cleaning
+from values import constant
 
 headers = {
     'Access-Control-Allow-Origin': '*',
@@ -12,9 +12,18 @@ headers = {
 }
 
 
+def fetch_number_of_pages():
+
+    ids = fetch_last_post_page_id()
+
+    pages_no = int(int(ids[1])/40+1)
+
+    return pages_no
+
+
 # Returns the URL of the last post pages
-def fetch_last_post_page_id(url):
-    html_content = requests.get(url, headers).text
+def fetch_last_post_page_id():
+    html_content = requests.get(constant.FIRST_PAGE_URL, headers).text
     soup = BeautifulSoup(html_content, "lxml")
     links = soup.find_all('a', class_='navPages')
 
@@ -40,17 +49,19 @@ def fetch_last_post_page_id(url):
 
 
 # Calculates all pages links from first one to the last because their ending goes up by 40 per each page
-def generate_all_post_page_links(numbers):
+def generate_all_post_page_links():
+
+    ids = fetch_last_post_page_id()
+
     links = []
-    number_of_pages = int(int(numbers[1]) / 40) + 1
+    number_of_pages = int(int(ids[1]) / 40) + 1
 
     for i in range(0, number_of_pages):
-        links.append("https://bitcointalk.org/index.php?board=" + str(numbers[0]) + "." + str(i * 40))
+        links.append("https://bitcointalk.org/index.php?board=" + str(ids[0]) + "." + str(i * 40))
     return links
 
 
 # Returns all posts from a given URL
-# [Link, Topix, Started by, Replies, Views, Last post time, Last post author]
 def fetch_post_from_url(url):
     results = []
     html_content = requests.get(url, headers).text
@@ -63,8 +74,7 @@ def fetch_post_from_url(url):
         for td in row:
             col = td.find_all('td')
             if len(col) == 7:
-                cleaned_data = infromation_cleaning.clean_post_information_data(col)
-                if "BOUNTY" in cleaned_data[2].upper():
-                    results.append(cleaned_data)
+                if "BOUNTY" in col[2].find('a').text.upper():
+                    results.append(col)
 
     return results
