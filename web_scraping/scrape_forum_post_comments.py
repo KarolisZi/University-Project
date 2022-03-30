@@ -17,7 +17,7 @@ def fetch_last_comment_page_id(url):
     soup = BeautifulSoup(html_content, "lxml")
     links = soup.find_all('a', class_='navPages')
 
-    largest, topics_id_1 = 0, 0
+    largest, topic_id_1 = 0, 0
 
     # Post id number format in url: "topic=5386857.00"
     #                                       id_1  id_2
