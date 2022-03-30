@@ -1,89 +1,6 @@
-from datetime import datetime
+from web_scraping import scrape_google_spreadsheet
+from information_cleaning import helper_functions
 import re
-
-"""
-=================================================================================================================
-DATA CLEANING PART FOR HOME PAGE DATA
-
- @ clean_post_information_data - retrieves the data from an object with html enconding and calls cleaning methods
- @ convert_time - converts time and date from 12 hour format to 24 hour format
- @ clean_last_author - cleans new line, tab symbols and "by"
- @ clean_topic - removes useless information
-================================================================================================================
-"""
-
-
-# Takes a column and extracts data from it
-def clean_post_information_data(column):
-    url = column[2].find('a').get('href')
-    topic_id = extract_id_from_url(url)
-    original_topic = column[2].find('a').text
-    topic = clean_topic(original_topic)
-    author = column[3].text.strip('\n').strip('\t').rstrip().lstrip()
-    replies = column[4].text.strip('\n').strip('\t').rstrip().lstrip()
-    views = column[5].text.strip('\n').strip('\t').rstrip().lstrip()
-    last_post_time = convert_time(column[6].text.splitlines()[3].strip('\n').strip('\t').rstrip()).lstrip()
-    last_post_author = clean_last_author(column[6].text.splitlines()[4])
-
-    return [topic_id, url, original_topic, topic, author, replies, views, last_post_time, last_post_author]
-
-
-def extract_id_from_url(url):
-    topic_id_12 = url.split(".")
-    topic_id_1_temp = topic_id_12[-2].split("=")
-    topic_id_1 = topic_id_1_temp[-1]
-
-    return topic_id_1
-
-    # Clean last author line
-
-
-def clean_last_author(last_post_author):
-    last_post_author = last_post_author.strip('\n').strip('\t')
-
-    last_post_author = last_post_author.rstrip()
-
-    last_post_author = last_post_author.replace("by ", "")
-
-    return last_post_author
-
-
-# Clean last topic line
-def clean_topic(topic):
-    # Regex expressions for emoji's
-    emoji_pattern = re.compile("["
-                               u"\U0001F9DE"  # aladdin
-                               u"\U0001F911"  # money mouth face
-                               u"\U0001F600-\U0001F64F"  # emoticons
-                               u"\U0001F300-\U0001F5FF"  # symbols & pictographs
-                               u"\U0001F680-\U0001F6FF"  # transport & map symbols
-                               u"\U0001F1E0-\U0001F1FF"  # flags (iOS)
-                               u"\U00002702-\U000027B0"
-                               u"\U000024C2-\U0001F251"
-                               u"\U000024C2-\U0001F251"
-
-
-                               "]+", flags=re.UNICODE)
-
-    # Remove most emoji characters from topic
-    topic = emoji_pattern.sub('', topic)
-
-    # Remove underscores
-    topic = topic.replace("_", "")
-
-    # Remove [BOUNTY]
-    topic = topic.replace("[Bounty]", "")
-    topic = topic.replace("[BOUNTY]", "")
-    topic = topic.replace("[BOUNTY STAR]", "")
-    topic = topic.replace("[BOUNTY ALADDIN]", "")
-    topic = topic.replace("[BOUNTY DETECTIVE]", "")
-    topic = topic.replace("[BOUNTY OPPORTUNITY]", "")
-
-    # Remove empty spaces
-    topic = topic.strip()
-
-    return topic
-
 
 """
 ================================================================================================================
@@ -116,11 +33,12 @@ def clean_comment_section_data(comments, topic_author):
 
     cleaned_participation_comments = extract_data_from_participation_comments(participation_comments)
 
-    cleaned_spreadsheet_data = extract_spreadsheet_data_from_comments(author_comments)
+    sheet_ids = extract_spreadsheet_ids_from_comments(author_comments)
 
-    return [cleaned_proof_comments, cleaned_participation_comments, cleaned_spreadsheet_data]
+    return [cleaned_proof_comments, cleaned_participation_comments, sheet_ids]
 
 
+# Clean and extract the data from proof comments
 def extract_data_from_proof_comments(proof_comments):
     results = []
     eth_patter = re.compile('/^0x[a-fA-F0-9]{40}$/g')
@@ -150,7 +68,7 @@ def extract_data_from_proof_comments(proof_comments):
             temp = time.split('Last edit:')
             time = temp[0].strip()
 
-        time = convert_time(time)
+        time = helper_functions.convert_time(time)
 
         # Retrieve post from header and post
         post = header_post.find('div', class_='post').text.split("\n")
@@ -178,6 +96,7 @@ def extract_data_from_proof_comments(proof_comments):
     return results
 
 
+# Clean and extract the data from participation comments
 def extract_data_from_participation_comments(participation_comments):
     result = []
 
@@ -221,7 +140,7 @@ def extract_data_from_participation_comments(participation_comments):
             temp = time.split('Last edit:')
             time = temp[0].strip()
 
-        time = convert_time(time)
+        time = helper_functions.convert_time(time)
 
         # Retrieve post from header and post
         comment_lines = header_post.find('div', class_='post').text.split('\n')
@@ -275,11 +194,21 @@ FUNCTIONS TO EXTRACT SPREADSHEET LINKS AND DATA
 ================================================================================================================
 """
 
-def extract_spreadsheet_data_from_comments(author_comments):
+
+# Clean and extract the data from google spreadsheets comments
+def extract_spreadsheet_ids_from_comments(author_comments):
+
+    sheet_ids = []
 
     links = get_spreadsheet_links_from_comments(author_comments)
 
-    return links
+    for link in links:
+
+        deconstructed = link.split('/')
+
+        sheet_ids.append(deconstructed[5])
+
+    return sheet_ids
 
 
 def get_spreadsheet_links_from_comments(author_comments):
@@ -309,35 +238,3 @@ def get_spreadsheet_links_from_comments(author_comments):
                     spreadsheet_links.append(link.get('href'))
 
     return spreadsheet_links
-
-
-"""
-================================================================================================================
-
-HELPER FUNCTIONS USED FOR COMMENT AND TOPIC CLEANING
-
-================================================================================================================
-"""
-
-
-# Converts time to 24-hour format and date to number format
-def convert_time(last_post_time):
-    if "Today" in last_post_time:
-
-        # 2 - time in hours, 3 - PM/AM
-        time = last_post_time.split(" ")
-
-        result = str(datetime.today().date()) + " " + str(time[2]) + " " + str(time[3])
-
-        in_time = datetime.strptime(result, "%Y-%m-%d %I:%M:%S %p")
-
-        out_time = datetime.strftime(in_time, "%Y-%m-%d %H:%M:%S")
-
-        return out_time
-    else:
-
-        in_time = datetime.strptime(last_post_time, "%B %d, %Y, %I:%M:%S %p")
-
-        out_time = datetime.strftime(in_time, "%Y-%m-%d %H:%M:%S")
-
-        return out_time

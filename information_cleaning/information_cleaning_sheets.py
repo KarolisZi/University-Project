@@ -1,0 +1,61 @@
+import re
+
+url_regex = re.compile(
+    "(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'\".,<>?«»“”‘’]))")
+
+social_media = ['TWITTER', 'FACEBOOK', 'REDDIT', 'YOUTUBE', 'LINKEDIN', 'INSTAGRAM']
+
+
+def clean_sheets_data(data):
+    result_array = []
+
+    timestamp, forum_username, profile_link, social_username = None, None, None, None
+
+    for index in range(0, len(data[0])):
+
+        if 'TIMESTAMP' in data[0][index].upper():
+            timestamp = index
+        elif 'FORUM USERNAME' in data[0][index].upper():
+            forum_username = index
+        elif 'PROFILE' and 'LINK' in data[0][index].upper():
+            profile_link = index
+
+        # https://docs.google.com/spreadsheets/d/1uJuXi99mKDDZBIDH6ZNl68CHF6xPgsqUu7ltAbSaE-A/edit#gid=2010194922
+        # Followers, Days(Stakes amount earned)
+        for platform in social_media:
+            if platform in data[0][index].upper() and 'USERNAME' in data[0][index].upper():
+                social_username = index
+
+    # Different Google_Spreadsheets formats
+    # Decide which is it based on by None variables
+    # Return different lists
+    for i in range(1, len(data)):
+
+        result = []
+
+        result.append(i)
+
+        if timestamp is not None:
+            result.append(data[i][timestamp])
+        else:
+            result.append('None')
+
+        if forum_username is not None:
+            result.append(data[i][forum_username])
+        else:
+            result.append('None')
+
+        if profile_link is not None:
+            result.append(data[i][profile_link])
+        else:
+            result.append('None')
+
+        if social_username is not None:
+            result.append(data[i][social_username])
+        else:
+            result.append('None')
+
+        result_array.append(result)
+
+    # ROW, TIMESTAMP, FORUM USERNAME, PROFILE LINK, SOCIAL MEDIA USERNAME
+    return result_array
