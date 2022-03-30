@@ -1,6 +1,5 @@
 from bs4 import BeautifulSoup
 import requests
-from web_scraping import infromation_cleaning
 
 headers = {
     'Access-Control-Allow-Origin': '*',
@@ -18,8 +17,7 @@ def fetch_last_comment_page_id(url):
     soup = BeautifulSoup(html_content, "lxml")
     links = soup.find_all('a', class_='navPages')
 
-    largest = 0
-    #topic_id_1 = 0
+    largest, topics_id_1 = 0, 0
 
     # Post id number format in url: "topic=5386857.00"
     #                                       id_1  id_2
@@ -52,13 +50,14 @@ def generate_all_comment_page_links(numbers):
     return links
 
 
-def fetch_comments_from_url(url, author):
+def fetch_comments_from_url(url):
+
     comments = []
 
     html_content = requests.get(url, headers).text
     soup = BeautifulSoup(html_content, "lxml")
 
-    information = soup.find_all("td", class_="windowbg2")
+    information = soup.find_all("td", class_="windowbg")
 
     for record in information:
 
@@ -67,8 +66,4 @@ def fetch_comments_from_url(url, author):
 
         comments.append(record)
 
-    # Clean the data parsed with lxml parser
-    results = infromation_cleaning.clean_comment_section_data(comments, author)
-
-    return results
-
+    return comments
