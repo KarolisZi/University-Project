@@ -2,8 +2,9 @@ import re
 
 url_regex = re.compile(
     "(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'\".,<>?«»“”‘’]))")
+profile_url_format = re.compile('https:\/\/bitcointalk.org\/index.php\?action=profile;u=\d\d\d\d\d\d\d')
 
-social_media = ['TWITTER', 'FACEBOOK', 'REDDIT', 'YOUTUBE', 'LINKEDIN', 'INSTAGRAM']
+social_media = ['TWITTER', 'FACEBOOK', 'REDDIT', 'YOUTUBE', 'LINKEDIN', 'INSTAGRAM', 'TELEGRAM']
 
 
 def clean_sheets_data(data):
@@ -20,20 +21,13 @@ def clean_sheets_data(data):
         elif 'PROFILE' and 'LINK' in data[0][index].upper():
             profile_link = index
 
-        # https://docs.google.com/spreadsheets/d/1uJuXi99mKDDZBIDH6ZNl68CHF6xPgsqUu7ltAbSaE-A/edit#gid=2010194922
-        # Followers, Days(Stakes amount earned)
         for platform in social_media:
             if platform in data[0][index].upper() and 'USERNAME' in data[0][index].upper():
                 social_username = index
 
-    # Different Google_Spreadsheets formats
-    # Decide which is it based on by None variables
-    # Return different lists
     for i in range(1, len(data)):
 
-        result = []
-
-        result.append(i)
+        result = [i+1]
 
         if timestamp is not None:
             result.append(data[i][timestamp])
@@ -45,7 +39,7 @@ def clean_sheets_data(data):
         else:
             result.append('None')
 
-        if profile_link is not None:
+        if profile_link is not None and profile_url_format.match(data[i][profile_link]):
             result.append(data[i][profile_link])
         else:
             result.append('None')
