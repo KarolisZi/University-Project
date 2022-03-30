@@ -85,11 +85,11 @@ def create_first_database_post_one_page_comment_records_in_database(data, revers
         page_id = scrape_forum_post_comments.fetch_last_comment_page_id(data[0][1])
         links = scrape_forum_post_comments.generate_all_comment_page_links(page_id)
         comments = scrape_forum_post_comments.fetch_comments_from_url(links[-1])
-        cleaned_comments = infromation_cleaning_comments.clean_comment_section_data(comments, data[0][2])
+        cleaned_comments = infromation_cleaning_comments.filter_comment_section_data(comments, data[0][2])
 
     else:
         comments = scrape_forum_post_comments.fetch_comments_from_url(data[0][1])
-        cleaned_comments = infromation_cleaning_comments.clean_comment_section_data(comments, data[0][2])
+        cleaned_comments = infromation_cleaning_comments.filter_comment_section_data(comments, data[0][2])
 
     crud_comment_data.insert_proof_comments(data[0][0], cleaned_comments[0])
     crud_comment_data.insert_participation_comments(data[0][0], cleaned_comments[1])
@@ -110,7 +110,7 @@ def create_first_database_post__all_pages_comment_records_in_database(data, reve
     # Go through all comments in all pages and store them in the database
     for link in links:
         comments = scrape_forum_post_comments.fetch_comments_from_url(link)
-        cleaned_comments = infromation_cleaning_comments.clean_comment_section_data(comments, data[0][2])
+        cleaned_comments = infromation_cleaning_comments.filter_comment_section_data(comments, data[0][2])
 
         crud_comment_data.insert_proof_comments(data[0][0], cleaned_comments[0])
         crud_comment_data.insert_participation_comments(data[0][0], cleaned_comments[1])
@@ -124,11 +124,10 @@ def create_all_post_first_page_comment_records_in_database(data, reverse):
             page_id = scrape_forum_post_comments.fetch_last_comment_page_id(entry[1])
             links = scrape_forum_post_comments.generate_all_comment_page_links(page_id)
             comments = scrape_forum_post_comments.fetch_comments_from_url(links[-1])
-            cleaned_comments = infromation_cleaning_comments.clean_comment_section_data(comments, entry[2])
-
+            cleaned_comments = infromation_cleaning_comments.filter_comment_section_data(comments, entry[2])
         else:
             comments = scrape_forum_post_comments.fetch_comments_from_url(entry[1])
-            cleaned_comments = infromation_cleaning_comments.clean_comment_section_data(comments, entry[2])
+            cleaned_comments = infromation_cleaning_comments.filter_comment_section_data(comments, entry[2])
 
         crud_comment_data.insert_proof_comments(entry[0], cleaned_comments[0])
         crud_comment_data.insert_participation_comments(entry[0], cleaned_comments[1])
@@ -149,7 +148,7 @@ def create_all_post_all_pages_comment_records_in_database(data, reverse):
         # Go through all comments in all pages and store them in the database
         for link in links:
             comments = scrape_forum_post_comments.fetch_comments_from_url(link)
-            cleaned_comments = infromation_cleaning_comments.clean_comment_section_data(comments, entry[2])
+            cleaned_comments = infromation_cleaning_comments.filter_comment_section_data(comments, entry[2])
 
             crud_comment_data.insert_proof_comments(entry[0], cleaned_comments[0])
             crud_comment_data.insert_participation_comments(entry[0], cleaned_comments[1])
@@ -206,12 +205,13 @@ def create_all_sheet_records(data):
 
             for sheet in sheet_data:
 
-                cleaned_sheet_data = information_cleaning_sheets.clean_sheets_data(sheet[0], sheet[1])
+                cleaned_sheet_data = information_cleaning_sheets.clean_sheets_data(sheet[1])
 
                 crud_sheets_data.insert_proof_comments(sheet_id, ids[0], sheet[0], cleaned_sheet_data)
 
 
 def create_x_sheet_records(data, number):
+
     for ids in data:
 
         sheet_ids = ids[1].replace('{', '').replace('}', '').split(',')
