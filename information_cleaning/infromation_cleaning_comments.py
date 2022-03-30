@@ -3,16 +3,18 @@ from information_cleaning import helper_functions
 import re
 
 """
-================================================================================================================
+========================================================================================================================
 DATA CLEANING PART FOR COMMENT SECTION DATA
 
  @ clean_comment_section_data - filters the comments and retrieves useful information
+ @ extract_data_from_proof_comments -
+ @ extract_data_from_participation_comments -
 
-================================================================================================================
+========================================================================================================================
 """
 
 
-def clean_comment_section_data(comments, topic_author):
+def filter_comment_section_data(comments, topic_author):
     proof_comments = []
     author_comments = []
     participation_comments = []
@@ -20,14 +22,17 @@ def clean_comment_section_data(comments, topic_author):
     for comment in comments:
 
         poster_info = comment.find('td', class_="poster_info")
-        forum_username = poster_info.find('a').text
 
-        if "PROOF" in str(comment.text.upper()) and forum_username != topic_author:
-            proof_comments.append(comment)
-        elif forum_username == topic_author:
-            author_comments.append(comment)
-        else:
-            participation_comments.append(comment)
+        if type(poster_info) is not None and poster_info is not None:
+
+            forum_username = poster_info.find('a').text
+
+            if "PROOF" in str(comment.text.upper()) and forum_username != topic_author:
+                proof_comments.append(comment)
+            elif forum_username == topic_author:
+                author_comments.append(comment)
+            else:
+                participation_comments.append(comment)
 
     cleaned_proof_comments = extract_data_from_proof_comments(proof_comments)
 
@@ -38,7 +43,6 @@ def clean_comment_section_data(comments, topic_author):
     return [cleaned_proof_comments, cleaned_participation_comments, sheet_ids]
 
 
-# Clean and extract the data from proof comments
 def extract_data_from_proof_comments(proof_comments):
     results = []
     eth_patter = re.compile('/^0x[a-fA-F0-9]{40}$/g')
@@ -96,7 +100,6 @@ def extract_data_from_proof_comments(proof_comments):
     return results
 
 
-# Clean and extract the data from participation comments
 def extract_data_from_participation_comments(participation_comments):
     result = []
 
@@ -197,13 +200,11 @@ FUNCTIONS TO EXTRACT SPREADSHEET LINKS AND DATA
 
 # Clean and extract the data from google spreadsheets comments
 def extract_spreadsheet_ids_from_comments(author_comments):
-
     sheet_ids = []
 
     links = get_spreadsheet_links_from_comments(author_comments)
 
     for link in links:
-
         deconstructed = link.split('/')
 
         sheet_ids.append(deconstructed[5])
