@@ -1,10 +1,18 @@
 import re
 
-url_regex = re.compile(
-    "(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'\".,<>?«»“”‘’]))")
 profile_url_format = re.compile('https:\/\/bitcointalk.org\/index.php\?action=profile;u=\d\d\d\d\d\d\d')
 
 social_media = ['TWITTER', 'FACEBOOK', 'REDDIT', 'YOUTUBE', 'LINKEDIN', 'INSTAGRAM', 'TELEGRAM']
+
+"""
+========================================================================================================================
+
+EXTRACT INFORMATION FROM GOOGLE SPREADSHEETS
+
+@ clean_sheets_data() - extracts data from spreadsheets for storage in the database
+
+========================================================================================================================
+"""
 
 
 def clean_sheets_data(data):

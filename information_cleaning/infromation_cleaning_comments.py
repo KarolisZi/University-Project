@@ -6,9 +6,9 @@ import re
 ========================================================================================================================
 DATA CLEANING PART FOR COMMENT SECTION DATA
 
- @ clean_comment_section_data - filters the comments and retrieves useful information
- @ extract_data_from_proof_comments -
- @ extract_data_from_participation_comments -
+ @ clean_comment_section_data() - filters and separates comments: proof, participation and author
+ @ extract_data_from_proof_comments() - extracts data from proof comments for storage in the database
+ @ extract_data_from_participation_comments() - extracts data from participation comments for storage in the database
 
 ========================================================================================================================
 """
@@ -190,26 +190,15 @@ def extract_data_from_participation_comments(participation_comments):
 
 
 """
-================================================================================================================
+========================================================================================================================
 
-FUNCTIONS TO EXTRACT SPREADSHEET LINKS AND DATA
+FUNCTIONS TO EXTRACT SPREADSHEET LINKS AND IDS FROM AUTHOR COMMENTS
 
-================================================================================================================
+@ get_spreadsheet_links_from_comments() - extract spreadsheet links from author comments
+@ extract_spreadsheet_ids_from_comments() - extracts spreadsheet ids from spreadsheet links
+
+========================================================================================================================
 """
-
-
-# Clean and extract the data from google spreadsheets comments
-def extract_spreadsheet_ids_from_comments(author_comments):
-    sheet_ids = []
-
-    links = get_spreadsheet_links_from_comments(author_comments)
-
-    for link in links:
-        deconstructed = link.split('/')
-
-        sheet_ids.append(deconstructed[5])
-
-    return sheet_ids
 
 
 def get_spreadsheet_links_from_comments(author_comments):
@@ -223,8 +212,7 @@ def get_spreadsheet_links_from_comments(author_comments):
         header_post = comment.find('td', class_="td_headerandpost")
 
         # Retrieve comment_id from the header
-        comment_id = header_post.find('a', class_='message_number').text.replace("#", "")
-
+        # comment_id = header_post.find('a', class_='message_number').text.replace("#", "")
         # if comment_id == 1:
 
         comment_lines = header_post.find('div', class_='post')
@@ -239,3 +227,16 @@ def get_spreadsheet_links_from_comments(author_comments):
                     spreadsheet_links.append(link.get('href'))
 
     return spreadsheet_links
+
+
+def extract_spreadsheet_ids_from_comments(author_comments):
+    sheet_ids = []
+
+    links = get_spreadsheet_links_from_comments(author_comments)
+
+    for link in links:
+        deconstructed = link.split('/')
+
+        sheet_ids.append(deconstructed[5])
+
+    return sheet_ids
