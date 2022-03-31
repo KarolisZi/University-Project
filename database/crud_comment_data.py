@@ -55,3 +55,28 @@ def insert_participation_comments(topic_id, comments):
         if connection:
             cursor.close()
             connection.close()
+
+def retrieve_participation_proof_comments_username_recurrance(table_name):
+    connection = connect_to_database.connect_to_the_database()
+    cursor = connection.cursor()
+
+    try:
+
+        postgres_insert_query = """ SELECT forum_username, count(*) as c FROM """ + table_name + """ GROUP BY forum_username"""
+
+        cursor.execute(postgres_insert_query)
+
+        result = cursor.fetchall()
+
+        connection.commit()
+
+        return result
+
+    except (Exception, psycopg2.Error) as error:
+        print("Failed to retrieve data from %s: %s" % (table_name, error))
+
+    finally:
+        # closing database connection.
+        if connection:
+            cursor.close()
+            connection.close()
