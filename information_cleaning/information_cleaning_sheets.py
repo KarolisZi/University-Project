@@ -18,7 +18,7 @@ EXTRACT INFORMATION FROM GOOGLE SPREADSHEETS
 def clean_sheets_data(data):
     result_array = []
 
-    timestamp, forum_username, profile_link, social_username = None, None, None, None
+    timestamp, forum_username, profile_link, social_username, followers = None, None, None, None, None
 
     for index in range(0, len(data[0])):
 
@@ -28,6 +28,8 @@ def clean_sheets_data(data):
             forum_username = index
         elif 'PROFILE' and 'LINK' in data[0][index].upper():
             profile_link = index
+        elif 'FOLLOWERS' in data[0][index].upper():
+            followers = index
 
         for platform in social_media:
             if platform in data[0][index].upper() and 'USERNAME' in data[0][index].upper():
@@ -35,7 +37,7 @@ def clean_sheets_data(data):
 
     for i in range(1, len(data)):
 
-        result = [i+1]
+        result = [i + 1]
 
         if timestamp is not None:
             result.append(data[i][timestamp])
@@ -54,6 +56,11 @@ def clean_sheets_data(data):
 
         if social_username is not None:
             result.append(data[i][social_username])
+        else:
+            result.append('None')
+
+        if followers is not None:
+            result.append(data[i][followers])
         else:
             result.append('None')
 
