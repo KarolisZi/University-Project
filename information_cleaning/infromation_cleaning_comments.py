@@ -1,5 +1,6 @@
 from web_scraping import scrape_google_spreadsheet
 from information_cleaning import helper_functions
+from values import regex
 import re
 
 """
@@ -45,7 +46,6 @@ def filter_comment_section_data(comments, topic_author):
 
 def extract_data_from_proof_comments(proof_comments):
     results = []
-    eth_patter = re.compile('/^0x[a-fA-F0-9]{40}$/g')
 
     for comment in proof_comments:
 
@@ -90,7 +90,7 @@ def extract_data_from_proof_comments(proof_comments):
                 campaigns = temp[-1].rstrip().lstrip()
             elif "ADDRESS" in text.upper():
                 temp = text.split(":")
-                if eth_patter.match(temp[-1].rstrip().lstrip()):
+                if regex.eth_patter.match(temp[-1].rstrip().lstrip()):
                     address = temp[-1].rstrip().lstrip()
             else:
                 data.append(text)
@@ -103,8 +103,6 @@ def extract_data_from_proof_comments(proof_comments):
 def extract_data_from_participation_comments(participation_comments):
 
     result = []
-
-    url_regex = r"(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'\".,<>?«»“”‘’]))"
 
     for comment in participation_comments:
 
@@ -139,7 +137,7 @@ def extract_data_from_participation_comments(participation_comments):
             if "WEEK" in line.upper():
                 week = line
 
-            urls = re.findall(url_regex, line)
+            urls = re.findall(regex.url_regex, line)
 
             if len(urls) > 0:
                 # Usernames, links, participation
@@ -152,21 +150,12 @@ def extract_data_from_participation_comments(participation_comments):
 
 
 def filter_url(url):
-    twitter_url_pattern = re.compile('https\:\/\/(www.)?(mobile.)?twitter\.com\/\w*')
-    facebook_url_pattern = re.compile('https\:\/\/(www.)?(web.)?(m.)?facebook\.com\/\w*')
-    telegram_url_pattern = re.compile('https\:\/\/(www.)?t\.me\/\w*')
-    instagram_url_pattern = re.compile('https\:\/\/(www.)?instagram\.com\/\w*')
-    reddit_url_pattern = re.compile('https\:\/\/(www.)reddit\.com\/\w*')
-
-    twitter_username_url_pattern = re.compile('https\:\/\/(www.)reddit\.com\/\w*$')
-    facebook_username_url_pattern = re.compile('https\:\/\/(www.)?(web.)?(m.)?facebook\.com\/\w*$')
-    # https://www.facebook.com/profile.php?id =
 
     links, social_media_usernames, week, participation, twitter_links, facebook_links, instagram_links, telegram_links, reddit_links, other_links = [], [], [], [], [], [], [], [], [], []
     twitter_username, facebook_username = None, None
 
     # Twitter links and username extraction
-    if twitter_url_pattern.match(url):
+    if regex.twitter_url_pattern.match(url):
 
         url_decomposed = url.split('/')
         twitter_username = url_decomposed[3]
@@ -174,13 +163,13 @@ def filter_url(url):
         if 'Twitter' not in participation:
             participation.append('Twitter')
 
-        if not twitter_username_url_pattern.match(url):
+        if not regex.twitter_username_url_pattern.match(url):
             twitter_links.append(url)
 
     # Facebook links and username extraction
-    elif facebook_url_pattern.match(url):
+    elif regex.facebook_url_pattern.match(url):
 
-        if not facebook_username_url_pattern.match(url):
+        if not regex.facebook_username_url_pattern.match(url):
             facebook_links.append(url)
         else:
             url_decomposed = url.split('/')
@@ -189,15 +178,15 @@ def filter_url(url):
         if 'Facebook' not in participation:
             participation.append('Facebook')
 
-    elif instagram_url_pattern.match(url):
+    elif regex.instagram_url_pattern.match(url):
         instagram_links.append(url)
         if 'Instagram' not in participation:
             participation.append('Instagram')
-    elif telegram_url_pattern.match(url):
+    elif regex.telegram_url_pattern.match(url):
         telegram_links.append(url)
         if 'Telegram' not in participation:
             participation.append('Telegram')
-    elif reddit_url_pattern.match(url):
+    elif regex.reddit_url_pattern.match(url):
         reddit_links.append(url)
         if 'Reddit' not in participation:
             participation.append('Reddit')
@@ -234,8 +223,6 @@ FUNCTIONS TO EXTRACT SPREADSHEET LINKS AND IDS FROM AUTHOR COMMENTS
 def get_spreadsheet_links_from_comments(author_comments):
     spreadsheet_links = []
 
-    spreadsheet_pattern = re.compile('https\:\/\/(www.)?docs\.google\.com\/spreadsheets\/\w*')
-
     for comment in author_comments:
 
         # Retrieve post and header
@@ -253,7 +240,7 @@ def get_spreadsheet_links_from_comments(author_comments):
 
             for link in post_links:
 
-                if spreadsheet_pattern.match(link.get('href')):
+                if regex.spreadsheet_pattern.match(link.get('href')):
                     spreadsheet_links.append(link.get('href'))
 
     return spreadsheet_links

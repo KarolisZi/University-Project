@@ -1,8 +1,6 @@
-import re
+from values import regex
 
-profile_url_format = re.compile('https:\/\/bitcointalk.org\/index.php\?action=profile;u=\d\d\d\d\d\d\d')
-
-social_media = ['TWITTER', 'FACEBOOK', 'REDDIT', 'YOUTUBE', 'LINKEDIN', 'INSTAGRAM', 'TELEGRAM']
+social_platforms = ['TWITTER', 'FACEBOOK', 'REDDIT', 'YOUTUBE', 'LINKEDIN', 'INSTAGRAM', 'TELEGRAM']
 
 """
 ========================================================================================================================
@@ -31,7 +29,7 @@ def clean_sheets_data(data):
         elif 'FOLLOWERS' in data[0][index].upper():
             followers = index
 
-        for platform in social_media:
+        for platform in social_platforms:
             if platform in data[0][index].upper() and 'USERNAME' in data[0][index].upper():
                 social_username = index
 
@@ -49,7 +47,7 @@ def clean_sheets_data(data):
         else:
             result.append('None')
 
-        if profile_link is not None and profile_url_format.match(data[i][profile_link]):
+        if profile_link is not None and regex.profile_url_format.match(data[i][profile_link]):
             result.append(data[i][profile_link])
         else:
             result.append('None')
