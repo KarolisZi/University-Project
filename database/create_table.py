@@ -147,6 +147,7 @@ def create_google_sheets_database():
                 forum_username VARCHAR(255),
                 profile_link VARCHAR(255),
                 social_media_username VARCHAR(255),
+                followers VARCHAR(255),
                 PRIMARY KEY (row, sheet_id, topic_id, sheet_name)
                 );
                 """
