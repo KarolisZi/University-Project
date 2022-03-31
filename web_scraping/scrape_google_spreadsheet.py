@@ -1,13 +1,14 @@
-import gspread
 import time
+import gspread
 
 
 def fetch_sheet_data(sheet_id):
+
     sheet_data = []
 
     sa = gspread.service_account(filename='API/service_account.json')
+
     try:
-        if sheet_id != '' and sheet_id is not None:
             sh = sa.open_by_key(sheet_id)
 
             worksheet_list = sh.worksheets()
@@ -18,13 +19,15 @@ def fetch_sheet_data(sheet_id):
 
                     sheet_data.append([worksheet.title, worksheet.get_all_values()])
 
-                except gspread.exceptions.APIError:
+                except (Exception, gspread.exceptions.APIError) as error:
 
                     print('Quota exceeded, sleeping for 1 minute')
                     time.sleep(60)
                     sheet_data.append([worksheet.title, worksheet.get_all_values()])
 
-    except gspread.exceptions.APIError:
-        print('Error: ' + str(gspread.exceptions.APIError))
-        # Insert into the database that the sheet no longer exists
+    except (Exception, gspread.exceptions.APIError) as error:
+        if sheet_id == '':
+            print('Error: no sheet_id provided')
+        else:
+            print('Error: ' + str(error))
     return sheet_data
