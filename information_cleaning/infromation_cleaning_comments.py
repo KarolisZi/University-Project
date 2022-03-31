@@ -9,7 +9,7 @@ DATA CLEANING PART FOR COMMENT SECTION DATA
  @ clean_comment_section_data() - filters and separates comments: proof, participation and author
  @ extract_data_from_proof_comments() - extracts data from proof comments for storage in the database
  @ extract_data_from_participation_comments() - extracts data from participation comments for storage in the database
-
+ @ filter_url - filters urls and finds usernames, social media platforms used
 ========================================================================================================================
 """
 
@@ -101,29 +101,15 @@ def extract_data_from_proof_comments(proof_comments):
 
 
 def extract_data_from_participation_comments(participation_comments):
+
     result = []
 
     url_regex = r"(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|(\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'\".,<>?«»“”‘’]))"
 
-    twitter_url_pattern = re.compile('https\:\/\/(www.)?(mobile.)?twitter\.com\/\w*')
-    facebook_url_pattern = re.compile('https\:\/\/(www.)?(web.)?(m.)?facebook\.com\/\w*')
-    telegram_url_pattern = re.compile('https\:\/\/(www.)?t\.me\/\w*')
-    instagram_url_pattern = re.compile('https\:\/\/(www.)?instagram\.com\/\w*')
-    reddit_url_pattern = re.compile('https\:\/\/(www.)reddit\.com\/\w*')
-
     for comment in participation_comments:
 
-        week = []
-        participation = []
-
-        twitter_links = []
-        facebook_links = []
-        instagram_links = []
-        telegram_links = []
-        reddit_links = []
-        other_links = []
-
-        social_media_profile_url = ''
+        week = None
+        us_li_pa = [[], [], []]
 
         # Retrieve forum username and link
         poster_info = comment.find('td', class_="poster_info")
@@ -156,37 +142,81 @@ def extract_data_from_participation_comments(participation_comments):
             urls = re.findall(url_regex, line)
 
             if len(urls) > 0:
-                if twitter_url_pattern.match(urls[0][0]):
-                    twitter_links.append(urls[0][0])
-                    if 'Twitter' not in participation:
-                        participation.append('Twitter')
-                elif facebook_url_pattern.match(urls[0][0]):
-                    facebook_links.append(urls[0][0])
-                    if 'Facebook' not in participation:
-                        participation.append('Facebook')
-                elif instagram_url_pattern.match(urls[0][0]):
-                    instagram_links.append(urls[0][0])
-                    if 'Instagram' not in participation:
-                        participation.append('Instagram')
-                elif telegram_url_pattern.match(urls[0][0]):
-                    telegram_links.append(urls[0][0])
-                    if 'Telegram' not in participation:
-                        participation.append('Telegram')
-                elif reddit_url_pattern.match(urls[0][0]):
-                    reddit_links.append(urls[0][0])
-                    if 'Reddit' not in participation:
-                        participation.append('Reddit')
-                else:
-                    other_links.append(urls[0][0])
-                    if 'Other' not in participation:
-                        participation.append('Other')
+                # Usernames, links, participation
+                us_li_pa = filter_url(urls[0][0])
 
-        links = [twitter_links, facebook_links]
 
-        result.append(
-            [comment_id, forum_username, forum_profile_url, week, social_media_profile_url, links, participation, time])
+        result.append([comment_id, forum_username, forum_profile_url, week, us_li_pa[0], us_li_pa[1], us_li_pa[2], time])
 
     return result
+
+
+def filter_url(url):
+    twitter_url_pattern = re.compile('https\:\/\/(www.)?(mobile.)?twitter\.com\/\w*')
+    facebook_url_pattern = re.compile('https\:\/\/(www.)?(web.)?(m.)?facebook\.com\/\w*')
+    telegram_url_pattern = re.compile('https\:\/\/(www.)?t\.me\/\w*')
+    instagram_url_pattern = re.compile('https\:\/\/(www.)?instagram\.com\/\w*')
+    reddit_url_pattern = re.compile('https\:\/\/(www.)reddit\.com\/\w*')
+
+    twitter_username_url_pattern = re.compile('https\:\/\/(www.)reddit\.com\/\w*$')
+    facebook_username_url_pattern = re.compile('https\:\/\/(www.)?(web.)?(m.)?facebook\.com\/\w*$')
+    # https://www.facebook.com/profile.php?id =
+
+    links, social_media_usernames, week, participation, twitter_links, facebook_links, instagram_links, telegram_links, reddit_links, other_links = [], [], [], [], [], [], [], [], [], []
+    twitter_username, facebook_username = None, None
+
+    # Twitter links and username extraction
+    if twitter_url_pattern.match(url):
+
+        url_decomposed = url.split('/')
+        twitter_username = url_decomposed[3]
+
+        if 'Twitter' not in participation:
+            participation.append('Twitter')
+
+        if not twitter_username_url_pattern.match(url):
+            twitter_links.append(url)
+
+    # Facebook links and username extraction
+    elif facebook_url_pattern.match(url):
+
+        if not facebook_username_url_pattern.match(url):
+            facebook_links.append(url)
+        else:
+            url_decomposed = url.split('/')
+            facebook_username = url_decomposed[-1]
+
+        if 'Facebook' not in participation:
+            participation.append('Facebook')
+
+    elif instagram_url_pattern.match(url):
+        instagram_links.append(url)
+        if 'Instagram' not in participation:
+            participation.append('Instagram')
+    elif telegram_url_pattern.match(url):
+        telegram_links.append(url)
+        if 'Telegram' not in participation:
+            participation.append('Telegram')
+    elif reddit_url_pattern.match(url):
+        reddit_links.append(url)
+        if 'Reddit' not in participation:
+            participation.append('Reddit')
+    else:
+        other_links.append(url)
+        if 'Other' not in participation:
+            participation.append('Other')
+
+    if twitter_username is not None:
+        social_media_usernames.append(twitter_username)
+    if facebook_username is not None:
+        social_media_usernames.append(facebook_username)
+
+    if len(twitter_links) > 0:
+        links.append(twitter_links)
+    if len(facebook_links) > 0:
+        links.append(facebook_links)
+
+    return [social_media_usernames, links, participation]
 
 
 """
