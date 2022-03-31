@@ -10,7 +10,7 @@ def insert_entry(topics):
         cursor = connection.cursor()
 
         postgres_insert_query = """ INSERT INTO """ + constant.TABLE_NAME_HOME_PAGE + """(topic_id, url, original_topic, topic, author, replies,
-         views, last_post_time, last_post_author) VALUES (%s,%s,%s, %s, %s, %s, %s, %s, %s)"""
+         views, last_post_time, last_post_author) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"""
 
         for topic in topics:
             record_to_insert = (
