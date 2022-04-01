@@ -12,7 +12,7 @@ def analyse_proof_participation_comments_username_recurrence(table, order):
         print('1st argument should be proof or participation')
         return
 
-    username_recurrence_proof = crud_comment_data.retrieve_participation_proof_comments_username_recurrance(table_name)
+    username_recurrence_proof = crud_comment_data.retrieve_participation_proof_comments_username_recurrence(table_name)
 
     match order:
         case 'asc':
