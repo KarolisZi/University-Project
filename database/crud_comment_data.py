@@ -13,7 +13,9 @@ def insert_proof_comments(topic_id, comments):
         telegram_username, campaigns, post_time) VALUES (%s, %s, %s, %s, %s, %s, %s)"""
 
         for comment in comments:
-            record_to_insert = (topic_id, comment[0], str(comment[1]), str(comment[2]), str(comment[3]), str(comment[4]), str(comment[5]))
+            record_to_insert = (
+                topic_id, comment[0], str(comment[1]), str(comment[2]), str(comment[3]), str(comment[4]),
+                str(comment[5]))
             cursor.execute(postgres_insert_query, record_to_insert)
             connection.commit()
 
@@ -22,7 +24,7 @@ def insert_proof_comments(topic_id, comments):
 
     finally:
 
-        print("Inserted %s comments into table: %s" % (len(comments), constant.TABLE_NAME_COMMENT_PAGE_PROOF ))
+        print("%s: Success!" % constant.TABLE_NAME_COMMENT_PAGE_PROOF)
 
         # closing database connection.
         if connection:
@@ -40,7 +42,10 @@ def insert_participation_comments(topic_id, comments):
         week, social_media_profile_url, social_media_links, participation, post_time) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"""
 
         for comment in comments:
-            record_to_insert = (topic_id, comment[0], str(comment[1]), str(comment[2]), str(comment[3]), str(comment[4]), str(comment[5]), str(comment[6]), str(comment[7]))
+            record_to_insert = (
+                topic_id, comment[0], str(comment[1]), str(comment[2]), str(comment[3]), str(comment[4]),
+                str(comment[5]),
+                str(comment[6]), str(comment[7]))
             cursor.execute(postgres_insert_query, record_to_insert)
             connection.commit()
 
@@ -49,14 +54,15 @@ def insert_participation_comments(topic_id, comments):
 
     finally:
 
-        print("Inserted %s comments into table: %s" % (len(comments), constant.TABLE_NAME_COMMENT_PAGE_PARTICIPATION))
+        print("%s: Success!" % constant.TABLE_NAME_COMMENT_PAGE_PARTICIPATION)
 
         # closing database connection.
         if connection:
             cursor.close()
             connection.close()
 
-def retrieve_participation_proof_comments_username_recurrance(table_name):
+
+def retrieve_participation_proof_comments_username_recurrence(table_name):
     connection = connect_to_database.connect_to_the_database()
     cursor = connection.cursor()
 
