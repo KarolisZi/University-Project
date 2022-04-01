@@ -9,12 +9,12 @@ def insert_entry(topics):
         connection = connect_to_database.connect_to_the_database()
         cursor = connection.cursor()
 
-        postgres_insert_query = """ INSERT INTO """ + constant.TABLE_NAME_HOME_PAGE + """(topic_id, url, original_topic, topic, author, replies,
-         views, last_post_time, last_post_author) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"""
+        postgres_insert_query = """ INSERT INTO """ + constant.TABLE_NAME_HOME_PAGE + """(topic_id, url, original_topic, topic, token_name, author, replies,
+         views, last_post_time, last_post_author) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
 
         for topic in topics:
             record_to_insert = (
-                topic[0], topic[1], topic[2], topic[3], topic[4], topic[5], topic[6], topic[7], topic[8])
+                topic[0], topic[1], topic[2], topic[3], topic[4], topic[5], topic[6], topic[7], topic[8], topic[9])
             cursor.execute(postgres_insert_query, record_to_insert)
             connection.commit()
 
