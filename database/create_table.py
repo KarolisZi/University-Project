@@ -16,6 +16,7 @@ def create_home_page_database():
         url VARCHAR(64),
         original_topic VARCHAR(255),
         topic VARCHAR(255),
+        token_name VARCHAR(255),
         author VARCHAR(64),
         replies INTEGER,
         views INTEGER,
