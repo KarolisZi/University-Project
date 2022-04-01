@@ -1,4 +1,5 @@
 import re
+
 '''
 ========================================================================================================================
 INFORMATION_CLEANING_COMMENTS
@@ -26,18 +27,29 @@ INFORMATION_CLEANING_TOPIC
 ========================================================================================================================
 '''
 
-emoji_pattern = re.compile("["
-                               u"\U0001F9DE"  # aladdin
-                               u"\U0001F911"  # money mouth face
-                               u"\U0001F600-\U0001F64F"  # emoticons
-                               u"\U0001F300-\U0001F5FF"  # symbols & pictographs
-                               u"\U0001F680-\U0001F6FF"  # transport & map symbols
-                               u"\U0001F1E0-\U0001F1FF"  # flags (iOS)
-                               u"\U00002702-\U000027B0"
-                               u"\U000024C2-\U0001F251"
-                               u"\U000024C2-\U0001F251"
+emoji_pattern = re.compile(u"(["
+                           u"\U0001F600-\U0001F64F"  # Emoticons
+                           u"\U0001F300-\U0001F5FF"  # Miscellaneous Symbols and Pictographs
+                           u"\U0001F680-\U0001F6FF"  # transport & map symbols
+                           u"\U0001F1E0-\U0001F1FF"  # flags (iOS)
+                           u"\U00002B00-\U00002BFF"  # Miscellaneous Symbols and Arrows
+                           u"\U00002700-\U000027BF"  # Dingbats
+                           u"\U0001F900-\U0001F9FF"  # Supplemental Symbols and Pictographs
+                           u"\U00002600-\U000026FF"  # Miscellaneous Symbols
+                           u"\U0001F780-\U0001F7FF"  # Geometric Shapes Extended 
+                           u"\U00002600-\U000026FF"  # Miscellaneous Symbols 
+                           u"\U000025A0-\U000025FF"  # Geometric Shapes
+                           u"\U00002300-\U000023FF"  # Miscellaneous Technical
+                           u"\U00002580-\U0000259F"  # Block Elements
+                           u"\U0001F100-\U0001F1FF"  # Enclosed Alphanumeric Supplement
+                           u"\U00003000-\U0000303F"  # CJK Symbols and Punctuation
+                           u"\U0001F0A0-\U0001F0FF"  # Playing Cards
+                           u"\U0000FFF0-\U0000FFFF"  # Specials
+                           "])", flags= re.UNICODE)
 
-                               "]+", flags=re.UNICODE)
+
+token_all_capitals = re.compile("[A-Z]{3,10}")
+token_all_capitals_short = re.compile("[A-Z]{3,5}")
 
 
 '''
