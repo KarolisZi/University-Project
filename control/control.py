@@ -91,9 +91,10 @@ def create_first_database_post_one_page_comment_records_in_database(data, revers
         comments = scrape_forum_post_comments.fetch_comments_from_url(data[0][1])
         cleaned_comments = infromation_cleaning_comments.filter_comment_section_data(comments, data[0][2])
 
+    print('Inserting %s comments to %s, %s comments to %s, topic_id = %s' % (len(cleaned_comments[0]), constant.TABLE_NAME_COMMENT_PAGE_PROOF, len(cleaned_comments[1]), constant.TABLE_NAME_COMMENT_PAGE_PARTICIPATION, data[0][0]))
+
     crud_comment_data.insert_proof_comments(data[0][0], cleaned_comments[0])
     crud_comment_data.insert_participation_comments(data[0][0], cleaned_comments[1])
-    # Insert spreadsheet ids
     crud_topic_data.insert_spreadsheet_ids(data[0][0], cleaned_comments[2])
 
 
@@ -112,6 +113,10 @@ def create_first_database_post__all_pages_comment_records_in_database(data, reve
         comments = scrape_forum_post_comments.fetch_comments_from_url(link)
         cleaned_comments = infromation_cleaning_comments.filter_comment_section_data(comments, data[0][2])
 
+        print('Inserting %s comments to %s, %s comments to %s, topic_id = %s' % (
+        len(cleaned_comments[0]), constant.TABLE_NAME_COMMENT_PAGE_PROOF, len(cleaned_comments[1]),
+        constant.TABLE_NAME_COMMENT_PAGE_PARTICIPATION, data[0][0]))
+
         crud_comment_data.insert_proof_comments(data[0][0], cleaned_comments[0])
         crud_comment_data.insert_participation_comments(data[0][0], cleaned_comments[1])
         crud_topic_data.insert_spreadsheet_ids(data[0][0], cleaned_comments[2])
@@ -128,6 +133,10 @@ def create_all_post_first_page_comment_records_in_database(data, reverse):
         else:
             comments = scrape_forum_post_comments.fetch_comments_from_url(entry[1])
             cleaned_comments = infromation_cleaning_comments.filter_comment_section_data(comments, entry[2])
+
+        print('Inserting %s comments to %s, %s comments to %s, topic_id = %s' % (
+        len(cleaned_comments[0]), constant.TABLE_NAME_COMMENT_PAGE_PROOF, len(cleaned_comments[1]),
+        constant.TABLE_NAME_COMMENT_PAGE_PARTICIPATION, data[0][0]))
 
         crud_comment_data.insert_proof_comments(entry[0], cleaned_comments[0])
         crud_comment_data.insert_participation_comments(entry[0], cleaned_comments[1])
@@ -149,6 +158,10 @@ def create_all_post_all_pages_comment_records_in_database(data, reverse):
         for link in links:
             comments = scrape_forum_post_comments.fetch_comments_from_url(link)
             cleaned_comments = infromation_cleaning_comments.filter_comment_section_data(comments, entry[2])
+
+            print('Inserting %s comments to %s, %s comments to %s, topic_id = %s' % (
+            len(cleaned_comments[0]), constant.TABLE_NAME_COMMENT_PAGE_PROOF, len(cleaned_comments[1]),
+            constant.TABLE_NAME_COMMENT_PAGE_PARTICIPATION, data[0][0]))
 
             crud_comment_data.insert_proof_comments(entry[0], cleaned_comments[0])
             crud_comment_data.insert_participation_comments(entry[0], cleaned_comments[1])
@@ -184,6 +197,7 @@ CONTROL OPERATIONS FOR GOOGLE SHEETS DATA RETRIEVAL
 
 
 def populate_database_sheets(check):
+
     data = crud_topic_data.fetch_all_id_sheet_ids()
 
     create_table.create_google_sheets_database()
@@ -204,7 +218,6 @@ def create_all_sheet_records(data):
             sheet_data = scrape_google_spreadsheet.fetch_sheet_data(sheet_id)
 
             for sheet in sheet_data:
-
                 cleaned_sheet_data = information_cleaning_sheets.clean_sheets_data(sheet[1])
 
                 crud_sheets_data.insert_proof_comments(sheet_id, ids[0], sheet[0], cleaned_sheet_data)
@@ -223,7 +236,6 @@ def create_x_sheet_records(data, number):
                 sheet_data = scrape_google_spreadsheet.fetch_sheet_data(sheet_id)
 
                 for sheet in sheet_data:
-
                     cleaned_sheet_data = information_cleaning_sheets.clean_sheets_data(sheet[1])
 
                     crud_sheets_data.insert_proof_comments(sheet_id, ids[0], sheet[0], cleaned_sheet_data)
