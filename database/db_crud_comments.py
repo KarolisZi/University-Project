@@ -3,18 +3,18 @@ from database import connect_to_database
 from values import constant
 
 
-def insert_proof_comments(topic_id, comments):
+def insert_proof_comments(topic_id, page_id, comments):
     try:
         # Connect to the database
         connection = connect_to_database.connect_to_the_database()
         cursor = connection.cursor()
 
-        postgres_insert_query = """ INSERT INTO """ + constant.TABLE_NAME_COMMENT_PAGE_PROOF + """(topic_id, comment_id, forum_username, forum_profile_url, 
-        telegram_username, campaigns, post_time) VALUES (%s, %s, %s, %s, %s, %s, %s)"""
+        postgres_insert_query = """ INSERT INTO """ + constant.DB_PROOF + """(topic_id, page_id, comment_id, forum_username, forum_profile_url, 
+        telegram_username, campaigns, post_time) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"""
 
         for comment in comments:
             record_to_insert = (
-                topic_id, comment[0], str(comment[1]), str(comment[2]), str(comment[3]), str(comment[4]),
+                topic_id, page_id, comment[0], str(comment[1]), str(comment[2]), str(comment[3]), str(comment[4]),
                 str(comment[5]))
             cursor.execute(postgres_insert_query, record_to_insert)
             connection.commit()
@@ -24,7 +24,7 @@ def insert_proof_comments(topic_id, comments):
 
     finally:
 
-        print("%s: Success!" % constant.TABLE_NAME_COMMENT_PAGE_PROOF)
+        print("%s: Success!" % constant.DB_PROOF)
 
         # closing database connection.
         if connection:
@@ -32,18 +32,18 @@ def insert_proof_comments(topic_id, comments):
             connection.close()
 
 
-def insert_participation_comments(topic_id, comments):
+def insert_participation_comments(topic_id, page_id, comments):
     try:
         # Connect to the database
         connection = connect_to_database.connect_to_the_database()
         cursor = connection.cursor()
 
-        postgres_insert_query = """ INSERT INTO """ + constant.TABLE_NAME_COMMENT_PAGE_PARTICIPATION + """(topic_id, comment_id, forum_username, forum_profile_url, 
-        week, social_media_profile_url, social_media_links, participation, post_time) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"""
+        postgres_insert_query = """ INSERT INTO """ + constant.DB_PARTICIPATION + """(topic_id, page_id, comment_id, forum_username, forum_profile_url, 
+        week, social_media_profile_url, social_media_links, participation, post_time) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
 
         for comment in comments:
             record_to_insert = (
-                topic_id, comment[0], str(comment[1]), str(comment[2]), str(comment[3]), str(comment[4]),
+                topic_id, page_id, comment[0], str(comment[1]), str(comment[2]), str(comment[3]), str(comment[4]),
                 str(comment[5]),
                 str(comment[6]), str(comment[7]))
             cursor.execute(postgres_insert_query, record_to_insert)
@@ -54,7 +54,7 @@ def insert_participation_comments(topic_id, comments):
 
     finally:
 
-        print("%s: Success!" % constant.TABLE_NAME_COMMENT_PAGE_PARTICIPATION)
+        print("%s: Success!" % constant.DB_PARTICIPATION)
 
         # closing database connection.
         if connection:

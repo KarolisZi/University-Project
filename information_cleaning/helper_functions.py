@@ -31,3 +31,9 @@ def convert_time(last_post_time):
         out_time = datetime.strftime(in_time, "%Y-%m-%d %H:%M:%S")
 
         return out_time
+
+
+def get_topic_ids(url):
+    url_decomposed = url.split('=')
+    id_12 = url_decomposed[-1].split('.')
+    return id_12

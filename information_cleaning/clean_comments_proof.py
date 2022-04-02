@@ -1,8 +1,8 @@
 from values import regex
-import helper_functions
+from information_cleaning import helper_functions
 
 
-def extract_data_from_proof_comments(proof_comments):
+def clean_comments(proof_comments):
     results = []
 
     for comment in proof_comments:

@@ -1,7 +1,9 @@
 from values import regex
-import helper_functions
+from information_cleaning import helper_functions
+import re
 
-def extract_data_from_participation_comments(participation_comments):
+
+def clean_comments(participation_comments):
     result = []
 
     for comment in participation_comments:

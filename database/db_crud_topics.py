@@ -9,7 +9,7 @@ def insert_entry(topics):
         connection = connect_to_database.connect_to_the_database()
         cursor = connection.cursor()
 
-        postgres_insert_query = """ INSERT INTO """ + constant.TABLE_NAME_HOME_PAGE + """(topic_id, url, original_topic, topic, token_name, author, replies,
+        postgres_insert_query = """ INSERT INTO """ + constant.DB_HOME + """(topic_id, url, original_topic, topic, token_name, author, replies,
          views, last_post_time, last_post_author) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
 
         for topic in topics:
@@ -23,7 +23,7 @@ def insert_entry(topics):
 
     finally:
 
-        print("Inserted %s posts into table: %s" % (len(topics), constant.TABLE_NAME_HOME_PAGE))
+        print("Inserted %s posts into table: %s" % (len(topics), constant.DB_HOME))
 
         # closing database connection.
         if connection:
@@ -36,7 +36,7 @@ def insert_spreadsheet_ids(topic_id, sheet_ids):
         connection = connect_to_database.connect_to_the_database()
         cursor = connection.cursor()
 
-        postgres_insert_query = """UPDATE """ + constant.TABLE_NAME_HOME_PAGE + """ SET sheet_ids = %s 
+        postgres_insert_query = """UPDATE """ + constant.DB_HOME + """ SET sheet_ids = %s 
                                                                                     WHERE topic_id = %s"""
 
         cursor.execute(postgres_insert_query, (sheet_ids, topic_id))
@@ -58,7 +58,7 @@ def fetch_all_id_url_author():
         connection = connect_to_database.connect_to_the_database()
         cursor = connection.cursor()
 
-        postgres_insert_query = """ SELECT topic_id, url, author FROM """ + constant.TABLE_NAME_HOME_PAGE
+        postgres_insert_query = """ SELECT topic_id, url, author FROM """ + constant.DB_HOME
 
         cursor.execute(postgres_insert_query)
 
@@ -83,7 +83,7 @@ def fetch_all_id_sheet_ids():
         connection = connect_to_database.connect_to_the_database()
         cursor = connection.cursor()
 
-        postgres_insert_query = """SELECT topic_id, sheet_ids FROM """ + constant.TABLE_NAME_HOME_PAGE
+        postgres_insert_query = """SELECT topic_id, sheet_ids FROM """ + constant.DB_HOME
 
         cursor.execute(postgres_insert_query)
 

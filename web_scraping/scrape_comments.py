@@ -12,7 +12,7 @@ headers = {
 
 
 # Retrieve topic the highest comment section number
-def fetch_last_comment_page_id(url):
+def fetch_last_page_id(url):
     html_content = requests.get(url, headers).text
     soup = BeautifulSoup(html_content, "lxml")
     links = soup.find_all('a', class_='navPages')
@@ -39,8 +39,9 @@ def fetch_last_comment_page_id(url):
 
 
 # Given the topic and comment section numbers generate all comment page links
-def generate_all_comment_page_links(numbers):
-    links = []
+def generate_comment_links(url):
+
+    numbers, links = fetch_last_page_id(url), []
 
     number_of_pages = int(int(numbers[1]) / 20) + 1
 
@@ -50,7 +51,7 @@ def generate_all_comment_page_links(numbers):
     return links
 
 
-def fetch_comments_from_url(url):
+def fetch_comments(url):
 
     comments = []
 

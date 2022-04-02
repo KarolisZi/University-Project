@@ -1,34 +1,35 @@
 from information_cleaning import clean_comments_proof
 from information_cleaning import clean_comments_participation
 from information_cleaning import clean_comments_author
-from information_cleaning import clean_spreadsheets
-from values import regex
-
 
 """
 ========================================================================================================================
 DATA CLEANING PART FOR COMMENT SECTION DATA
 
- @ clean_comment_section_data() - filters and separates comments: proof, participation and author
- @ extract_data_from_proof_comments() - extracts data from proof comments for storage in the database
- @ extract_data_from_participation_comments() - extracts data from participation comments for storage in the database
-    @ filter_url - filters urls and finds usernames, social media platforms used
- @ extract_data_from_author_comments() - extracts data from author comments
+ @ clean() - calls data cleaning functions on each of the 3 categories + retrieves sheet_ids from author comments
+ @ filter_comment_section_data() - filters the comments into 3 categories: PROOF, PARTICIPATION, AUTHOR
+
 ========================================================================================================================
 """
 
-"""
-GENERAL SORTING OF COMMENTS: PROOF, PARTICIPATION and AUTHOR
-    AUTHOR COMMENTS: SHEET_IDS, IMAGE COMMENTS, TEXT COMMENTS
 
-Returns 3 arrays of comments
-"""
+def clean(comments, topic_author):
+
+    proof_participation_author = filter_comment_section_data(comments, topic_author)
+
+    cleaned_proof_comments = clean_comments_proof.clean_comments(proof_participation_author[0])
+
+    cleaned_participation_comments = clean_comments_participation.clean_comments(proof_participation_author[1])
+
+    cleaned_author_comments = clean_comments_author.clean_comments(proof_participation_author[2])
+
+    sheet_ids = clean_comments_author.extract_spreadsheet_ids(proof_participation_author[2])
+
+    return [cleaned_proof_comments, cleaned_participation_comments, cleaned_author_comments, sheet_ids]
 
 
 def filter_comment_section_data(comments, topic_author):
-    proof_comments = []
-    author_comments = []
-    participation_comments = []
+    proof_comments, participation_comments, author_comments = [], [], []
 
     for comment in comments:
 
@@ -39,19 +40,14 @@ def filter_comment_section_data(comments, topic_author):
             forum_username = poster_info.find('a').text
 
             if "PROOF" in str(comment.text.upper()) and forum_username != topic_author:
+
                 proof_comments.append(comment)
+
             elif forum_username == topic_author:
+
                 author_comments.append(comment)
+
             else:
                 participation_comments.append(comment)
 
-    cleaned_proof_comments = clean_comments_proof.extract_data_from_proof_comments(proof_comments)
-
-    cleaned_participation_comments = clean_comments_participation.extract_data_from_participation_comments(participation_comments)
-
-    cleaned_author_comments = clean_comments_author.extract_data_from_author_comments(author_comments)
-
-    sheet_ids = clean_spreadsheets.extract_spreadsheet_ids_from_comments(author_comments)
-
-    return [cleaned_proof_comments, cleaned_participation_comments, sheet_ids, cleaned_author_comments]
-
+    return [proof_comments, participation_comments, author_comments]

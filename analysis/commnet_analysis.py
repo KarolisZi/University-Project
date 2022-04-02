@@ -1,13 +1,13 @@
-from database import crud_comment_data
+from database import db_crud_comments
 from values import constant
 
 
 def analyse_proof_participation_comments_username_recurrence(table, order):
 
     if table == 'proof':
-        table_name = constant.TABLE_NAME_COMMENT_PAGE_PROOF
+        table_name = constant.DB_PROOF
     elif table == 'participation':
-        table_name = constant.TABLE_NAME_COMMENT_PAGE_PARTICIPATION
+        table_name = constant.DB_PARTICIPATION
     else:
         print('1st argument should be proof or participation')
         return
@@ -21,3 +21,5 @@ def analyse_proof_participation_comments_username_recurrence(table, order):
             sorted_by_username = sorted(username_recurrence_proof, key=lambda tup: tup[1], reverse=True)
 
     return sorted_by_username
+
+# IDEA: ANALYSE CAMPAIGNS COLUMN IN PROOF TABLE TO SEE MOST POPULAR SOCIAL MEDIA SOURCES

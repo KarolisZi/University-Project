@@ -62,7 +62,7 @@ def generate_all_post_page_links():
 
 
 # Returns all posts from a given URL
-def fetch_post_from_url(url):
+def fetch_post_data(url):
     results = []
     html_content = requests.get(url, headers).text
     soup = BeautifulSoup(html_content, "lxml")

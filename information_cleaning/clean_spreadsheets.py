@@ -1,54 +1,6 @@
-social_platforms = ['TWITTER', 'FACEBOOK', 'REDDIT', 'YOUTUBE', 'LINKEDIN', 'INSTAGRAM', 'TELEGRAM']
 from values import regex
 
-"""
-========================================================================================================================
-
-FUNCTIONS TO EXTRACT SPREADSHEET LINKS AND IDS FROM AUTHOR COMMENTS
-
-@ get_spreadsheet_links_from_comments() - extract spreadsheet links from author comments
-@ extract_spreadsheet_ids_from_comments() - extracts spreadsheet ids from spreadsheet links
-
-========================================================================================================================
-"""
-
-def get_spreadsheet_links_from_comments(author_comments):
-    spreadsheet_links = []
-
-    for comment in author_comments:
-
-        # Retrieve post and header
-        header_post = comment.find('td', class_="td_headerandpost")
-
-        # Retrieve comment_id from the header
-        # comment_id = header_post.find('a', class_='message_number').text.replace("#", "")
-        # if comment_id == 1:
-
-        comment_lines = header_post.find('div', class_='post')
-
-        if (len(comment_lines)) > 0:
-
-            post_links = comment_lines.find_all('a', class_='ul')
-
-            for link in post_links:
-
-                if regex.spreadsheet_pattern.match(link.get('href')):
-                    spreadsheet_links.append(link.get('href'))
-
-    return spreadsheet_links
-
-
-def extract_spreadsheet_ids_from_comments(author_comments):
-    sheet_ids = []
-
-    links = get_spreadsheet_links_from_comments(author_comments)
-
-    for link in links:
-        deconstructed = link.split('/')
-
-        sheet_ids.append(deconstructed[5])
-
-    return sheet_ids
+social_platforms = ['TWITTER', 'FACEBOOK', 'REDDIT', 'YOUTUBE', 'LINKEDIN', 'INSTAGRAM', 'TELEGRAM']
 
 
 """
