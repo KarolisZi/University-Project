@@ -4,7 +4,7 @@ from values import constant
 
 
 def create_home_page_database():
-    table_name = constant.TABLE_NAME_HOME_PAGE
+    table_name = constant.DB_HOME
     connection = connect_to_database.connect_to_the_database()
     cursor = connection.cursor()
 
@@ -13,15 +13,15 @@ def create_home_page_database():
         postgres_insert_query = """
         CREATE TABLE """ + table_name + """ (
         topic_id INTEGER,
-        url VARCHAR(64),
-        original_topic VARCHAR(255),
-        topic VARCHAR(255),
-        token_name VARCHAR(255),
-        author VARCHAR(64),
+        url VARCHAR(50),
+        original_topic VARCHAR(80),
+        topic VARCHAR(80),
+        token_name VARCHAR(50),
+        author VARCHAR(25),
         replies INTEGER,
         views INTEGER,
-        last_post_time VARCHAR(64),
-        last_post_author VARCHAR(64),
+        last_post_time TIMESTAMP,
+        last_post_author VARCHAR(25),
         sheet_ids TEXT,
         PRIMARY KEY(topic_id)
         );
@@ -44,7 +44,7 @@ def create_home_page_database():
 
 
 def create_comments_proof_database():
-    table_name = constant.TABLE_NAME_COMMENT_PAGE_PROOF
+    table_name = constant.DB_PROOF
     connection = connect_to_database.connect_to_the_database()
     cursor = connection.cursor()
 
@@ -53,21 +53,22 @@ def create_comments_proof_database():
         postgres_insert_query_1 = """
                 CREATE TABLE """ + table_name + """ (
                 topic_id INTEGER,
-                comment_id VARCHAR(255),
-                forum_username VARCHAR(255),
-                forum_profile_url VARCHAR(255),
-                telegram_username VARCHAR(255),
-                campaigns VARCHAR(255),
-                post_time VARCHAR(255),
+                page_id INTEGER,
+                comment_id INTEGER,
+                forum_username VARCHAR(25),
+                forum_profile_url VARCHAR(60),
+                telegram_username VARCHAR(33),
+                campaigns VARCHAR(150),
+                post_time TIMESTAMP,
                 PRIMARY KEY (topic_id, comment_id)
                 );
                 """
 
         postgres_insert_query_2 = """
         ALTER TABLE """ + table_name + """ 
-        ADD CONSTRAINT fk_""" + constant.TABLE_NAME_HOME_PAGE + """Table
+        ADD CONSTRAINT fk_""" + constant.DB_HOME + """Table
         FOREIGN KEY (topic_id) 
-        REFERENCES """ + constant.TABLE_NAME_HOME_PAGE + """ (topic_id)
+        REFERENCES """ + constant.DB_HOME + """ (topic_id)
         """
 
         cursor.execute(postgres_insert_query_1)
@@ -87,7 +88,7 @@ def create_comments_proof_database():
 
 
 def create_comments_participation_database():
-    table_name = constant.TABLE_NAME_COMMENT_PAGE_PARTICIPATION
+    table_name = constant.DB_PARTICIPATION
     connection = connect_to_database.connect_to_the_database()
     cursor = connection.cursor()
 
@@ -96,23 +97,24 @@ def create_comments_participation_database():
         postgres_insert_query_1 = """
                 CREATE TABLE """ + table_name + """ (
                 topic_id INTEGER,
-                comment_id VARCHAR(255),
-                forum_username VARCHAR(255),
-                forum_profile_url VARCHAR(255),
-                week VARCHAR(255),
+                page_id INTEGER,
+                comment_id INTEGER,
+                forum_username VARCHAR(25),
+                forum_profile_url VARCHAR(60),
+                week VARCHAR(150),
                 social_media_profile_url VARCHAR(255),
                 social_media_links TEXT,
                 participation TEXT,
-                post_time VARCHAR(255),
+                post_time TIMESTAMP,
                 PRIMARY KEY (topic_id, comment_id)
                 );
                 """
 
         postgres_insert_query_2 = """
         ALTER TABLE """ + table_name + """ 
-        ADD CONSTRAINT fk_""" + constant.TABLE_NAME_HOME_PAGE + """Table
+        ADD CONSTRAINT fk_""" + constant.DB_HOME + """Table
         FOREIGN KEY (topic_id) 
-        REFERENCES """ + constant.TABLE_NAME_HOME_PAGE + """ (topic_id)
+        REFERENCES """ + constant.DB_HOME + """ (topic_id)
         """
 
         cursor.execute(postgres_insert_query_1)
@@ -132,7 +134,7 @@ def create_comments_participation_database():
 
 
 def create_google_sheets_database():
-    table_name = constant.TABLE_NAME_GOOGLE_SHEETS
+    table_name = constant.DB_SHEETS
     connection = connect_to_database.connect_to_the_database()
     cursor = connection.cursor()
 
@@ -140,24 +142,24 @@ def create_google_sheets_database():
 
         postgres_insert_query_1 = """
                 CREATE TABLE """ + table_name + """ (
-                row VARCHAR(255),
-                sheet_id VARCHAR(255),
+                row INTEGER,
+                sheet_id INTEGER,
                 topic_id INTEGER,
-                sheet_name VARCHAR(255),
-                timestamp VARCHAR(255),
-                forum_username VARCHAR(255),
-                profile_link VARCHAR(255),
-                social_media_username VARCHAR(255),
-                followers VARCHAR(255),
+                sheet_name VARCHAR(100),
+                timestamp TIMESTAMP,
+                forum_username VARCHAR(25),
+                profile_link VARCHAR(60),
+                social_media_username VARCHAR(100),
+                followers VARCHAR(100),
                 PRIMARY KEY (row, sheet_id, topic_id, sheet_name)
                 );
                 """
 
         postgres_insert_query_2 = """
         ALTER TABLE """ + table_name + """
-        ADD CONSTRAINT fk_""" + constant.TABLE_NAME_HOME_PAGE + """Table
+        ADD CONSTRAINT fk_""" + constant.DB_HOME + """Table
         FOREIGN KEY (topic_id)
-        REFERENCES """ + constant.TABLE_NAME_HOME_PAGE + """ (topic_id)
+        REFERENCES """ + constant.DB_HOME + """ (topic_id)
         """
 
         cursor.execute(postgres_insert_query_1)
