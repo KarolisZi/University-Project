@@ -78,6 +78,7 @@ def clean_topic(topic):
     topic = topic.replace("(BOUNTY)", "")
     topic = topic.replace("BOUNTY", "")
     topic = topic.replace("Bounty", "")
+    topic = topic.replace("ILO", "")
 
     # Remove empty spaces
     topic = topic.strip()
