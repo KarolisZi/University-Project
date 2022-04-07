@@ -48,10 +48,7 @@ emoji_pattern = re.compile(u"(["
                            u"\U0000FFF0-\U0000FFFF"  # Specials
                            "])", flags= re.UNICODE)
 
-
-token_all_capitals = re.compile("[A-Z]{3,10}")
-token_all_capitals_short = re.compile("[A-Z]{3,5}")
-
+number_letter_format = re.compile('[0-9]*K?M?k?m?B?b?Ƀ?$')
 
 '''
 ========================================================================================================================
