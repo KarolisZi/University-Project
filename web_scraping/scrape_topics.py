@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup
 import requests
 from values import constant
+import time
 
 headers = {
     'Access-Control-Allow-Origin': '*',
@@ -23,7 +24,13 @@ def fetch_number_of_pages():
 
 # Returns the URL of the last post pages
 def fetch_last_post_page_id():
+
     html_content = requests.get(constant.FIRST_PAGE_URL, headers).text
+
+    while 'Too fast / overloaded (503)' in html_content:
+        time.sleep(1)
+        html_content = requests.get(constant.FIRST_PAGE_URL, headers).text
+
     soup = BeautifulSoup(html_content, "lxml")
     links = soup.find_all('a', class_='navPages')
 
@@ -63,8 +70,14 @@ def generate_all_post_page_links():
 
 # Returns all posts from a given URL
 def fetch_post_data(url):
+
     results = []
     html_content = requests.get(url, headers).text
+
+    while 'Too fast / overloaded (503)' in html_content:
+        time.sleep(1)
+        html_content = requests.get(url, headers).text
+
     soup = BeautifulSoup(html_content, "lxml")
 
     table = soup.find_all('table', class_='bordercolor')
