@@ -1,5 +1,6 @@
-from database import db_crud_analysis
+from database import crud_analysis
 from values import constant
+from alive_progress import alive_bar
 
 
 # ANALYSE USERNAME COLUMN IN PROOF AND PARTICIPATION TABLES TO SEE THE FREQUENCY
@@ -12,7 +13,7 @@ def proof_participation_username_frequency(table, order):
         print('1st argument should be proof or participation')
         return
 
-    username_frequency = db_crud_analysis.retrieve_username_frequency(table_name)
+    username_frequency = crud_analysis.read('proof/participation[username_frequency]', table_name)
 
     match order:
         case 'asc':
@@ -26,10 +27,10 @@ def proof_participation_username_frequency(table, order):
 # ANALYSE CAMPAIGNS COLUMN IN PROOF TABLE TO SEE MOST POPULAR SOCIAL MEDIA SOURCES
 def proof_campaigns_frequency(order):
     campaign_counter = [['Twitter', 0], ['Facebook', 0], ['Reddit', 0], ['YouTube', 0], ['LinkedIn', 0],
-                        ['Instagram', 0],
-                        ['Telegram', 0], ['TikTok', 0], ['Article', 0], ['Video', 0], ['Blog', 0]]
+                        ['Instagram', 0], ['Telegram', 0], ['TikTok', 0], ['Article', 0], ['Video', 0], ['Blog', 0],
+                        ['Medium', 0], ['Discord', 0], ['Signature', 0], ['Translation', 0], ['Other', 0]]
 
-    campaigns = db_crud_analysis.retrieve_campaign_frequency()
+    campaigns = crud_analysis.read('proof[campaigns]', [])
 
     for campaign_set in campaigns:
 
@@ -55,6 +56,16 @@ def proof_campaigns_frequency(order):
             campaign_counter[9][1] += 1
         if "Blog" in campaign_set[0]:
             campaign_counter[10][1] += 1
+        if "Medium" in campaign_set[0]:
+            campaign_counter[11][1] += 1
+        if "Discord" in campaign_set[0]:
+            campaign_counter[12][1] += 1
+        if "Signature" in campaign_set[0]:
+            campaign_counter[13][1] += 1
+        if "Translation" in campaign_set[0]:
+            campaign_counter[14][1] += 1
+        if "Other" in campaign_set[0]:
+            campaign_counter[15][1] += 1
 
     match order:
         case 'asc':
@@ -64,6 +75,13 @@ def proof_campaigns_frequency(order):
 
     return sorted_by_frequency
 
+
+def analyse_twitter_post_urls():
+
+    entries = crud_analysis.read('participation[twitter_links]', [])
+
+    return entries
+
+
+
 # IDEA: ANALYSE THE PROOF AND PARTICIPATION TABLES TO SEE HOW MANY COMMENTS ARE IN EACH (SORTED BY TOPIC_ID)
-
-
