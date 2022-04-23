@@ -1,5 +1,6 @@
 from values import regex
 from information_cleaning import helper_functions
+from classes.comment_proof import Proof
 
 
 def clean_comments(proof_comments):
@@ -7,72 +8,72 @@ def clean_comments(proof_comments):
 
     for comment in proof_comments:
 
-        address, telegram_username = "", ""
-        data, campaigns = [], []
+        proof = Proof(None, None, None, None, None, None, [], None, None)
 
-        # Retrieve forum username and link
+        # RETRIEVE FORUM USERNAME AND LINK
         poster_info = comment.find('td', class_="poster_info")
-        forum_username = poster_info.find('a').text
-        profile_url = poster_info.find('a').get('href')
+        proof.set_forum_username(poster_info.find('a').text)
+        proof.set_forum_profile_url(poster_info.find('a').get('href'))
 
-        # Retrieve post and header
-        header_post = comment.find('td', class_="td_headerandpost")
+        # RETRIEVE COMMENT ID AND POST TIME
+        time_id = helper_functions.extract_post_time_and_id(comment)
+        proof.set_post_time(time_id[0])
+        proof.set_comment_id(time_id[1])
 
-        # Retrieve comment_id from the header
-        comment_id = header_post.find('a', class_='message_number').text.replace("#", "")
+        # RETRIEVE POST FROM THE COMMENT
+        post = comment.find('div', class_='post').text.split("\n")
 
-        # Retrieve time from the header
-        time = header_post.find('div', class_='smalltext').text
-
-        if 'Last edit:' in time:
-            temp = time.split('Last edit:')
-            time = temp[0].strip()
-
-        time = helper_functions.convert_time(time)
-
-        # Retrieve post from header and post
-        post = header_post.find('div', class_='post').text.split("\n")
-
-        for text in post:
+        for line in post:
 
             # Telegram user name
-            if "TELEGRAM" and "USER" and "NAME" in text.upper():
-                temp = text.replace(":", " : ")
-                temp = temp.split(":")
-                telegram_username = temp[-1].rstrip().lstrip()
+            if "TELEGRAM" in line.upper() and "USER" in line.upper() and "NAME" in line.upper():
+                if ':' in line:
+                    temp = line.replace(":", " : ")
+                    proof.set_telegram_username(temp.split(":")[-1].strip())
+                else:
+                    temp = line.split(" ")
+                    proof.set_telegram_username(temp[-1].strip())
+            elif "CAMPAIGN" in line.upper():
+                if "TWITTER" in line.upper() or "TWIITER" in line.upper() and 'Twitter' not in proof.get_campaigns():
+                    proof.set_campaigns('Twitter')
+                if "FACEBOOK" in line.upper() and 'Facebook' not in proof.get_campaigns():
+                    proof.set_campaigns('Facebook')
+                if "REDDIT" in line.upper() and 'Reddit' not in proof.get_campaigns():
+                    proof.set_campaigns('Reddit')
+                if "YOUTUBE" in line.upper() and 'YouTube' not in proof.get_campaigns():
+                    proof.set_campaigns('YouTube')
+                if "LINKEDIN" in line.upper() and 'LinkedIn' not in proof.get_campaigns():
+                    proof.set_campaigns('LinkedIn')
+                if "INSTAGRAM" in line.upper() and 'Instagram' not in proof.get_campaigns():
+                    proof.set_campaigns('Instagram')
+                if "TELEGRAM" in line.upper() or "TELIGRAM" in line.upper() and 'Telegram' not in proof.get_campaigns():
+                    proof.set_campaigns('Telegram')
+                if "TIKTOK" in line.upper() or 'TIK TOK' in line.upper() and 'TikTok' not in proof.get_campaigns():
+                    proof.set_campaigns('TikTok')
+                if "ARTICLE" in line.upper() or "ARTICAL" in line.upper() and 'Article' not in proof.get_campaigns():
+                    proof.set_campaigns('Article')
+                if "VIDEO" in line.upper() and 'Video' not in proof.get_campaigns():
+                    proof.set_campaigns('Video')
+                if "BLOG" in line.upper() and 'Blog' not in proof.get_campaigns():
+                    proof.set_campaigns('Blog')
+                if "MEDIUM" in line.upper() and 'Medium' not in proof.get_campaigns():
+                    proof.set_campaigns('Medium')
+                if "DISCORD" in line.upper() and 'Discord' not in proof.get_campaigns():
+                    proof.set_campaigns('Discord')
+                if "SIGNATURE" in line.upper() and 'Signature' not in proof.get_campaigns():
+                    proof.set_campaigns('Signature')
+                if "TRANSLATION" in line.upper() and 'Translation' not in proof.get_campaigns():
+                    proof.set_campaigns('Translation')
+                if not proof.get_campaigns():
+                    proof.set_campaigns('Other')
+            elif "ADDRESS" in line.upper():
+                if regex.eth_patter.match(line.split(":")[-1].strip()):
+                    # Ether address
+                    proof.set_wallet_address(line.split(":")[-1].strip())
+                else:
+                    # Other addresses (find regex for BTC)
+                    proof.set_wallet_address(line.split(":")[-1].strip())
 
-            elif "CAMPAIGN" in text.upper():
-
-                if "TWITTER" in text.upper() or "TWIITER" in text.upper():
-                    campaigns.append('Twitter')
-                if "FACEBOOK" in text.upper():
-                    campaigns.append('Facebook')
-                if "REDDIT" in text.upper():
-                    campaigns.append('Reddit')
-                if "YOUTUBE" in text.upper():
-                    campaigns.append('YouTube')
-                if "LINKEDIN" in text.upper():
-                    campaigns.append('LinkedIn')
-                if "INSTAGRAM" in text.upper():
-                    campaigns.append('Instagram')
-                if "TELEGRAM" in text.upper() or "TELIGRAM" in text.upper():
-                    campaigns.append('Telegram')
-                if "TIKTOK" in text.upper() or 'TIK TOK' in text.upper():
-                    campaigns.append('TikTok')
-                if "ARTICLE" in text.upper() or "ARTICAL" in text.upper():
-                    campaigns.append('Article')
-                if "VIDEO" in text.upper():
-                    campaigns.append('Video')
-                if "BLOG" in text.upper():
-                    campaigns.append('Blog')
-
-            elif "ADDRESS" in text.upper():
-                temp = text.split(":")
-                if regex.eth_patter.match(temp[-1].rstrip().lstrip()):
-                    address = temp[-1].rstrip().lstrip()
-            else:
-                data.append(text)
-
-        results.append([comment_id, forum_username, profile_url, telegram_username, campaigns, time, address])
+        results.append(proof)
 
     return results

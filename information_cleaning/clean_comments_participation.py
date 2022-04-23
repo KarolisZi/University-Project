@@ -1,5 +1,6 @@
 from values import regex
 from information_cleaning import helper_functions
+from classes.comment_participation import Participation
 import re
 
 
@@ -8,102 +9,107 @@ def clean_comments(participation_comments):
 
     for comment in participation_comments:
 
-        week = None
-        us_li_pa = [[], [], []]
+        participation = Participation(None, None, None, None, None, [], None, [], None, None)
 
-        # Retrieve forum username and link
+        # RETRIEVE FORUM USERNAME AND LINK
         poster_info = comment.find('td', class_="poster_info")
-        forum_username = poster_info.find('a').text
-        forum_profile_url = poster_info.find('a').get('href')
+        participation.set_forum_username(poster_info.find('a').text)
+        participation.set_forum_profile_url(poster_info.find('a').get('href'))
 
-        # Retrieve post and header
-        header_post = comment.find('td', class_="td_headerandpost")
+        # RETRIEVE COMMENT ID AND POST TIME
+        time_id = helper_functions.extract_post_time_and_id(comment)
+        participation.set_post_time(time_id[0])
+        participation.set_comment_id(time_id[1])
 
-        # Retrieve comment_id from the header
-        comment_id = header_post.find('a', class_='message_number').text.replace("#", "")
-
-        # Retrieve time from the header
-        time = header_post.find('div', class_='smalltext').text
-
-        if 'Last edit:' in time:
-            temp = time.split('Last edit:')
-            time = temp[0].strip()
-
-        time = helper_functions.convert_time(time)
-
-        # Retrieve post from header and post
-        comment_lines = header_post.find('div', class_='post').text.split('\n')
+        # RETRIEVE POST FROM THE COMMENT
+        comment_full = comment.find('div', class_='post').text
+        comment_lines = comment_full.split('\n')
 
         for line in comment_lines:
 
-            if "WEEK" in line.upper():
-                week = line
+            # Extract DAYS AND WEEKS
+            if "WEEK" in line.upper() or "DAY" in line.upper():
 
-            urls = re.findall(regex.url_regex, line)
+                dates, string = [], ''
 
-            if len(urls) > 0:
-                # Usernames, links, participation
-                us_li_pa = filter_url(urls[0][0])
+                for match in re.finditer(regex.day_month, line):
+                    dates.append(line[match.start(): match.end()])
+                if dates is not None:
+                    for date in dates:
+                        string += date
+                        string += ' - '
+                    string = string[:-3]
+                    if string != '':
+                        participation.set_week(string)
 
-        result.append(
-            [comment_id, forum_username, forum_profile_url, week, us_li_pa[0], us_li_pa[1], us_li_pa[2], time])
+        urls = re.findall(regex.url_regex, comment_full)
+
+        filter_url(urls, participation)
+
+        result.append(participation)
 
     return result
 
 
-def filter_url(url):
-    links, social_media_usernames, week, participation, twitter_links, facebook_links, instagram_links, telegram_links, reddit_links, other_links = [], [], [], [], [], [], [], [], [], []
+def filter_url(urls, participation_object):
+    social_media_handle, participation = [], []
+    twitter_links, facebook_links, instagram_links, telegram_links, reddit_links, other_links = [], [], [], [], [], []
     twitter_username, facebook_username = None, None
 
-    # Twitter links and username extraction
-    if regex.twitter_url_pattern.match(url):
+    for url in urls:
+        # ================== TWITTER ==================
+        if regex.twitter_url_pattern.match(url):
 
-        url_decomposed = url.split('/')
-        twitter_username = url_decomposed[3]
+            twitter_username = url.split('/')[3]
 
-        if 'Twitter' not in participation:
-            participation.append('Twitter')
+            if not regex.twitter_username_url_pattern.match(url):
+                twitter_links.append(url)
 
-        if not regex.twitter_username_url_pattern.match(url):
-            twitter_links.append(url)
+            if 'Twitter' not in participation:
+                participation.append('Twitter')
 
-    # Facebook links and username extraction
-    elif regex.facebook_url_pattern.match(url):
+        # ================== FACEBOOK ==================
+        elif regex.facebook_url_pattern.match(url):
 
-        if not regex.facebook_username_url_pattern.match(url):
-            facebook_links.append(url)
+            if not regex.facebook_username_url_pattern.match(url):
+                facebook_links.append(url)
+                facebook_username = url.split('/')[-1]
+
+            if 'Facebook' not in participation:
+                participation.append('Facebook')
+        # ================== INSTAGRAM ==================
+        elif regex.instagram_url_pattern.match(url):
+            instagram_links.append(url)
+            if 'Instagram' not in participation:
+                participation.append('Instagram')
+        # ================== TELEGRAM ==================
+        elif regex.telegram_url_pattern.match(url):
+            telegram_links.append(url)
+            if 'Telegram' not in participation:
+                participation.append('Telegram')
+        # ================== REDDIT ==================
+        elif regex.reddit_url_pattern.match(url):
+            reddit_links.append(url)
+            if 'Reddit' not in participation:
+                participation.append('Reddit')
+        # ================== OTHER ==================
         else:
-            url_decomposed = url.split('/')
-            facebook_username = url_decomposed[-1]
-
-        if 'Facebook' not in participation:
-            participation.append('Facebook')
-
-    elif regex.instagram_url_pattern.match(url):
-        instagram_links.append(url)
-        if 'Instagram' not in participation:
-            participation.append('Instagram')
-    elif regex.telegram_url_pattern.match(url):
-        telegram_links.append(url)
-        if 'Telegram' not in participation:
-            participation.append('Telegram')
-    elif regex.reddit_url_pattern.match(url):
-        reddit_links.append(url)
-        if 'Reddit' not in participation:
-            participation.append('Reddit')
-    else:
-        other_links.append(url)
-        if 'Other' not in participation:
-            participation.append('Other')
+            if 'bitcointalk.org' not in url:
+                other_links.append(url)
+                if 'Other' not in participation:
+                    participation.append('Other')
 
     if twitter_username is not None:
-        social_media_usernames.append(twitter_username)
+        social_media_handle.append('Twitter:'+twitter_username)
     if facebook_username is not None:
-        social_media_usernames.append(facebook_username)
+        social_media_handle.append('Facebook:'+facebook_username)
 
-    if len(twitter_links) > 0:
-        links.append(twitter_links)
-    if len(facebook_links) > 0:
-        links.append(facebook_links)
+    participation_object.set_twitter_links(twitter_links)
+    participation_object.set_facebook_links(facebook_links)
+    participation_object.set_instagram_links(instagram_links)
+    participation_object.set_telegram_links(telegram_links)
+    participation_object.set_reddit_links(reddit_links)
+    participation_object.set_other_links(other_links)
 
-    return [social_media_usernames, links, participation]
+    participation_object.set_social_media_handle(social_media_handle)
+    participation_object.set_participation(participation)
