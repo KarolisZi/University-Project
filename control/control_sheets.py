@@ -1,7 +1,7 @@
 from web_scraping import scrape_sheets
-from database import db_crud_topics
+from database import crud_topic
 from database import create_table
-from database import db_crud_sheets
+from database import crud_sheets
 from information_cleaning import clean_spreadsheets
 from alive_progress import alive_bar
 
@@ -14,15 +14,16 @@ CONTROL OPERATIONS FOR GOOGLE SHEETS DATA RETRIEVAL
 """
 
 
-def populate_database_sheets(check):
-    data = db_crud_topics.fetch_all_id_sheet_ids()
+def populate_database_sheets(mode):
+
+    data = crud_topic.read('topic[topic_id, sheet_ids]', [])
 
     create_table.google_sheets()
 
-    if check == "all":
+    if mode == "all":
         create_all_sheet_records(data)
-    elif check.isnumeric():
-        create_x_sheet_records(data, int(check))
+    elif mode.isnumeric():
+        create_x_sheet_records(data, int(mode))
 
 
 def create_all_sheet_records(data):
@@ -38,25 +39,25 @@ def create_all_sheet_records(data):
                 for sheet in sheet_data:
                     cleaned_sheet_data = clean_spreadsheets.clean_sheets_data(sheet[1])
 
-                    db_crud_sheets.insert_sheets(sheet_id, ids[0], sheet[0], cleaned_sheet_data)
+                    crud_sheets.create('sheets', [sheet_id, ids[0], sheet[0], cleaned_sheet_data])
         bar()
 
 
 def create_x_sheet_records(data, number):
-    for ids in data:
 
-        sheet_ids = ids[1].replace('{', '').replace('}', '').split(',')
+    for topic_sheet in data:
 
         while number > 0:
 
-            for sheet_id in sheet_ids:
+            for sheet_id in topic_sheet[1]:
 
                 sheet_data = scrape_sheets.fetch_sheet_data(sheet_id)
 
                 for sheet in sheet_data:
+
                     cleaned_sheet_data = clean_spreadsheets.clean_sheets_data(sheet[1])
 
-                    db_crud_sheets.insert_sheets(sheet_id, ids[0], sheet[0], cleaned_sheet_data)
+                    crud_sheets.create('sheets', [sheet_id, topic_sheet[0], sheet[0], cleaned_sheet_data])
 
             number -= 1
 

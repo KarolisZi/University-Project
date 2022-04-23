@@ -2,10 +2,10 @@ from web_scraping import scrape_comments
 from information_cleaning import clean_comments
 from information_cleaning import helper_functions
 from alive_progress import alive_bar
-from database import db_crud_topics
-from database import db_crud_comments
+from database import crud_comments
+from database import crud_topic
 from values import constant
-from database import create_table
+from datetime import datetime
 
 """
 ========================================================================================================================
@@ -21,115 +21,223 @@ CONTROL OPERATIONS FOR THE COMMENT PAGE DATA
 """
 
 
-def populate_database_comments(check, reverse):
-    # Fetch all URLs and IDs of the comments
-    data = db_crud_topics.fetch_all_id_url_author()
+def populate_database(mode, pages_mode, reverse, tables):
+    urls, empty_ids, data = [], [], retrieve_data_from_mode(mode)
 
-    # Create database table for comments
-    create_table.comments_proof()
-    create_table.comments_participation()
-    create_table.comments_author()
+    for i, entry in enumerate(data):
 
-    match check:
-        case "one_one":
-            comment_first_post_one_page(data, reverse)
-        case "one_all":
-            comment_first_post_all_pages(data, reverse)
-        case "all_one":
-            comment_all_post_one_page(data, reverse)
-        case "all_all":
-            comment_all_post_all_pages(data, reverse)
+        ids_error, complete = [], False
 
+        successful_check = crud_topic.read('successful_transfers[topic_successful]', entry[0])
 
-def comment_first_post_one_page(data, reverse):
-    url = ''
+        if successful_check[0][0]:
 
-    links = scrape_comments.generate_comment_links(data[0][1])
-    match reverse:
-        case True:
-            url = links[-1]
-        case False:
-            url = links[0]
+            urls = retrieve_urls_from_page_mode(entry[1], pages_mode)
 
-    comments = scrape_comments.fetch_comments(url)
-    cleaned_comments = clean_comments.clean(comments, data[0][2])
-    topic_ids = helper_functions.get_topic_ids(url)
+            # Check for empty posts in a row (usually happens one website bans the IP address of the scraper)
+            if len(urls) == 1 and urls[0].split('=')[-1].split('.')[-1] == '0':
+                empty_ids.append(urls[0].split('=')[-1].split('.')[0])
+            else:
+                empty_ids = []
 
-    insert_comment_data(topic_ids, cleaned_comments)
+            # if len(empty_ids) >= 5:
+            #     for empty_id in empty_ids:
+            #           crud_topic.update('successful_transfers[topic_successful=null]', empty_id)
 
+                print('Aborting due to 5 empty posts in a row: %s' % (empty_ids,))
+                break
 
-def comment_first_post_all_pages(data, reverse):
-    links = scrape_comments.generate_comment_links(data[0][1])
+            # Reverse
+            if reverse:
+                urls = list(reversed(urls))
 
-    if reverse:
-        links = list(reversed(links))
+            with alive_bar(len(urls), title=('Topic: %s/%s' % (i + 1, len(data)))) as bar:
+                for url in urls:
 
-    with alive_bar(len(links), title='Post comments') as bar:
-        # Go through all comments in all pages and store them in the database
-        for link in links:
-            comments = scrape_comments.fetch_comments(link)
-            cleaned_comments = clean_comments.clean(comments, data[0][2])
-            topic_ids = helper_functions.get_topic_ids(link)
+                    comments = scrape_comments.fetch_comments(url)
 
-            insert_comment_data(topic_ids, cleaned_comments)
-            bar()
+                    topic_ids = helper_functions.get_topic_ids(url)
 
+                    cleaned_comments = clean_comments.clean(comments, entry[2], tables, topic_ids[0])
 
-def comment_all_post_one_page(data, reverse):
-    with alive_bar(len(data), title='Posts') as bar:
-        for entry in data:
+                    try:
+                        insert_comment_data(topic_ids, cleaned_comments)
 
-            links, url = scrape_comments.generate_comment_links(entry[1]), ''
+                    except Exception as error:
+                        print('Error caught: ' + str(error))
+                        ids_error.append(
+                            [helper_functions.get_topic_ids(url)[0], helper_functions.get_topic_ids(url)[1],
+                             str(error)])
 
-            match reverse:
-                case True:
-                    url = links[-1]
-                case False:
-                    url = links[0]
+                    bar()
 
-            comments = scrape_comments.fetch_comments(url)
-            cleaned_comments = clean_comments.clean(comments, entry[2])
-            topic_ids = helper_functions.get_topic_ids(entry[1])
-
-            insert_comment_data(topic_ids, cleaned_comments)
-            bar()
+            # If error encountered: record the error + (topic and page) id AND delete inserted comments (from that page) from all tables
+            if ids_error:
+                for id_error in ids_error:
+                    crud_comments.create('populate_scrape_errors', [id_error[0], id_error[1], id_error[2]])
+                    crud_comments.delete('comments[by_topic_id]', [id_error[0], id_error[1]])
+            # If everything dones successfully add it to the database as complete:
+            elif not ids_error:
+                crud_topic.update('successful_transfers[topic_successful=True]', entry[0])
 
 
-def comment_all_post_all_pages(data, reverse):
+def update(data):
     for entry in data:
 
-        # Generate all page numbers
-        links = scrape_comments.generate_comment_links(entry[1])
+        ids_error, complete = [], []
 
-        if reverse:
-            links = list(reversed(links))
+        urls = scrape_comments.generate_comment_links(entry[1], 'all')
 
-        with alive_bar(len(links), title='Post comments') as bar_one_post:
-            # Go through all comments in all pages and store them in the database
-            for link in links:
-                comments = scrape_comments.fetch_comments(link)
-                cleaned_comments = clean_comments.clean(comments, entry[2])
-                topic_ids = helper_functions.get_topic_ids(link)
+        successful_check = crud_topic.read('successful_transfers[topic_successful]', entry[0])
 
-                insert_comment_data(topic_ids, cleaned_comments)
-                bar_one_post()
+        if not successful_check[0][0]:
+
+            for url in urls:
+
+                try:
+                    comments = scrape_comments.fetch_comments(url)
+
+                    cleaned_comments = clean_comments.clean(comments, entry[2], ['participation', 'author', 'proof'])
+
+                    proof = cleaned_comments[0]
+                    participation = cleaned_comments[1]
+                    author = cleaned_comments[2]
+
+                    topic_ids = helper_functions.get_topic_ids(url)
+
+                    for proof_comment in proof:
+                        if int(proof_comment.get_comment_id()) > entry[3] + 1:
+                            del proof_comment
+                    for participation_comment in participation:
+                        if int(participation_comment.get_comment_id()) > entry[3] + 1:
+                            del participation_comment
+                    for author_comment in author:
+                        if int(author_comment.get_comment_id()) > entry[3] + 1:
+                            del author_comment
+
+                    insert_comment_data(topic_ids, [proof, participation, author, cleaned_comments[3]])
+                except Exception as error:
+                    print('Error caught: ' + str(error))
+                    ids_error.append(
+                        [helper_functions.get_topic_ids(url)[0], helper_functions.get_topic_ids(url)[1], str(error)])
+
+            # If everything done successfully delete the comment_update entry
+            if not ids_error:
+                crud_comments.delete('comments_update[entry]', entry[0])
+            # If error encountered: record the error + (topic and page) id AND delete inserted comments (from that page) from all tables
+            elif ids_error:
+                for id_error in ids_error:
+                    crud_comments.create('populate_scrape_errors', [id_error[0], id_error[1], id_error[2]])
+                    crud_comments.delete('comments[by_topic_id]', [id_error[0], id_error[1]])
+            elif not ids_error:
+                crud_topic.create('successful_transfers[topic_successful=True]', entry[0])
 
 
 """
 ========================================================================================================================
 HELPER FUNCTIONS
+    @ print_insertion_message() - responsible for printing messages about the amount of comments inserted
+    @ insert_comment_data() - inserts cleaned comments data into the database
 ========================================================================================================================
 """
 
 
-def print_insertion_message(ids, len_proof, len_participation):
-    print('Inserting %s comments to %s, %s comments to %s, topic_id = %s.%s' % (
-        len_proof, constant.DB_PROOF, len_participation, constant.DB_PARTICIPATION, ids[0], ids[1]))
+def print_insertion_message(ids, len_proof, len_participation, len_author):
+    print_check = False
+    string = 'Inserting '
+
+    if len_proof > 0:
+        string += ('%s comments to %s, ' % (len_proof, constant.DB_PROOF))
+        print_check = True
+    if len_participation > 0:
+        string += ('%s comments to %s, ' % (len_participation, constant.DB_PARTICIPATION))
+        print_check = True
+    if len_author > 0:
+        string += ('%s comments to %s, ' % (len_author, constant.DB_AUTHOR))
+        print_check = True
+
+    string += ('topic_id = %s.%s' % (ids[0], ids[1]))
+
+    if print_check:
+        print(string)
 
 
-def insert_comment_data(topic_ids, comments_c):
-    print_insertion_message(topic_ids, len(comments_c[0]), len(comments_c[1]))
-    db_crud_comments.insert_proof_comments(topic_ids[0], topic_ids[1], comments_c[0])
-    db_crud_comments.insert_participation_comments(topic_ids[0], topic_ids[1], comments_c[1])
-    db_crud_comments.insert_author_comments(topic_ids[0], comments_c[2])
-    db_crud_topics.insert_spreadsheet_ids(topic_ids[0], comments_c[3])
+def insert_comment_data(topic_ids, comments_clean):
+    proof = comments_clean[0]
+    participation = comments_clean[1]
+    author = comments_clean[2]
+    topic = comments_clean[3]
+
+    print_insertion_message(topic_ids, len(proof), len(participation), len(author))
+
+    try:
+
+        if len(proof) > 0:
+            crud_comments.create('populate_proof', [topic_ids[0], topic_ids[1], proof])
+        if len(participation) > 0:
+            crud_comments.create('populate_participation', [topic_ids[0], topic_ids[1], participation])
+        if len(author) > 0:
+            crud_comments.create('populate_author', [topic_ids[0], author])
+            crud_topic.update('topic[creation_time]', [topic_ids[0], author[0].get_post_time()])
+            if topic.get_campaign() is not None:
+                crud_topic.create('populate_reward_rules', [topic_ids[0], topic.get_campaign()])
+
+        crud_topic.update('topic[spreadsheet_ids]', [topic_ids[0], topic])
+
+    except Exception as error:
+        print(error)
+
+
+def extract_date(string):
+    date = []
+
+    if '-' in string:
+
+        string_temp = string.split(' - ')
+
+        date.append(datetime.strptime(string_temp[0], '%Y/%m/%d'))
+        date.append(datetime.strptime(string_temp[1], '%Y/%m/%d'))
+
+    else:
+        date.append(datetime.strptime(string, '%Y/%m/%d'))
+
+    return date
+
+
+def retrieve_data_from_mode(mode):
+    data = []
+
+    # MODE OF OPERATION (UPDATE - COMMENTS WHICH HAVE NOT BEEN UPDATED BEFORE) +-+-
+    if mode == 'update':
+        data = crud_comments.read('comments_update[topic_id]')
+        update(data)
+        return
+    # MODE OF OPERATION (DATE OR DATE RANGE)
+    elif '/' in mode:
+        date = extract_date(mode)
+        data = crud_topic.read('topic[topic_id, url, author] by date', date)
+    # MODE OF OPERATION (ALL)
+    elif mode == 'all':
+        data = crud_topic.read('topic[topic_id, url, author]', 'all')
+    # MODE OF OPERATION (ONE)
+    elif mode == 'one':
+        data = crud_topic.read('topic[topic_id, url, author]', 'one')
+        data = [data]
+    # MODE OF OPERATION ([ID, URL, AUTHOR])
+    elif type(mode) == type(list()):
+        data = mode
+
+    return data
+
+
+def retrieve_urls_from_page_mode(url, pages_mode):
+
+    if pages_mode.isnumeric():
+        urls = scrape_comments.generate_comment_links(url, pages_mode)
+    elif pages_mode == 'all':
+        urls = scrape_comments.generate_comment_links(url, pages_mode)
+    else:
+        print('Please select one of the following modes: all, 1, 2, 3, 4, ...')
+        return
+
+    return urls

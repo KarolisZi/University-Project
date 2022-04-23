@@ -1,6 +1,8 @@
 from web_scraping import scrape_imgur
-from database import db_crud_comments
-from image_to_text import image_to_text
+from database import crud_comments
+from database import crud_topic
+from information_cleaning import clean_comments_author
+from database import create_table
 from alive_progress import alive_bar
 
 """
@@ -12,40 +14,59 @@ CONTROL OPERATIONS FOR AUTHOR COMMENTS (IMAGE) ANALYSIS
 """
 
 
-def populate_database_author(check):
-    data = db_crud_comments.fetch_all_id_image_urls()
+def populate_database_author(mode):
+    create_table.topic_reward_rules()
+    data = crud_comments.read('author[topic_id, comment_id, image_urls, raw_text]')
 
-    match check:
+    match mode:
         case 'one':
-            create_one_image_topic_entry(data)
-        case 'all':
-            create_all_image_topic_entries(data)
+            create_entries(data, 'one')
+        case 'all_new':
+            create_entries(data, 'all_new')
+        case 'all_new_failed':
+            create_entries(data, 'all_failed')
 
 
-def create_one_image_topic_entry(data):
-    if data[0][2]:
-        # Download images
-        len_images = scrape_imgur.retrieve_imgur_image(data[0][0], data[0][1])
-
-        if len_images > 0:
-            # Convert images to text
-            text = image_to_text.convert(data[0][0], len_images)
-
-            db_crud_comments.insert_image_text(data[0][0], text)
-
-
-def create_all_image_topic_entries(data):
-    with alive_bar(len(data)) as bar:
+def create_entries(data, mode):
+    with alive_bar(len(data), title='Author post + image') as bar:
 
         for entry in data:
 
-            if entry[2]:
-                # Download images
-                len_images = scrape_imgur.retrieve_imgur_image(entry[0], entry[1])
+            complete, no_errors, check = False, True, False
 
-                if len_images > 0:
-                    # Convert images to text
-                    text = image_to_text.convert(entry[0], len_images)
+            successful_check = crud_topic.read('successful_transfers[images_successful]', entry[0])
 
-                    db_crud_comments.insert_image_text(data[0][0], text)
-        bar()
+            # Check if the post_id is 1
+            if entry[1] == 1:
+
+                match mode:
+                    case 'all_new':
+                        if successful_check[0][0] is None:
+                            check = True
+                    case 'all_failed':
+                        if not successful_check[0][0]:
+                            check = True
+                    case 'all_new_failed':
+                        if successful_check[0][0] is None or not successful_check[0][0]:
+                            check = True
+
+                if check:
+
+                    try:
+                        text = scrape_imgur.insert_image_data([entry])
+                        topic = clean_comments_author.analyse_author_comment_text(text)
+
+                        crud_topic.update('topic[author]', [entry[0], topic])
+                        crud_topic.create('populate_reward_rules', [entry[0], topic.get_campaign()])
+
+                        if mode == 'one':
+                            return
+
+                    except Exception as error:
+                        no_errors = False
+
+                    if no_errors:
+                        crud_topic.update('successful_transfers[images_successful=True]', entry[0])
+                    elif not no_errors:
+                        crud_topic.update('successful_transfers[images_successful=False]', entry[0])
+                bar()
