@@ -2,9 +2,10 @@
 FIRST_PAGE_URL = "https://bitcointalk.org/index.php?board=238.0"
 FIRST_PAGE_URL_NO_PAGE_ID = 'https://bitcointalk.org/index.php?board=238.'
 TOPIC_PAGE_URL = 'https://bitcointalk.org/index.php?topic='
+TWITTER_AUDIT = 'https://www.twitteraudit.com/'
 # DATABASE
 # Schema
-SCHEMA = 'data_2022_03'
+SCHEMA = 'data_2021'
 # Topic related
 DB_TOPIC = "topic"
 DB_SUCCESSFUL_TRANSFERS = 'successful_transfers'
@@ -17,6 +18,9 @@ DB_COMMENTS_UPDATE = 'comments_update'
 DB_COMMENT_SCRAPE_ERRORS = 'comments_scrape_error'
 # Sheets related
 DB_SHEETS = "google_sheets"
+# Twitter
+DB_TWITTER_TWEET = 'twitter_tweet'
+DB_TWITTER_USER = 'twitter_user'
 
 
 
