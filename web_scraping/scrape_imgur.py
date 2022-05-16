@@ -4,9 +4,17 @@ from image_to_text import image_to_text
 
 absolute_path = 'C:/Users/kikar.LAPTOP-Q25785DG/OneDrive/Desktop/University-Project/images/'
 
+"""
+================================================================================================
 
+RETRIEVE IMAGES FROM IMGUR
+
+================================================================================================
+"""
+
+
+# Retrieve and store images found in author comments
 def insert_image_data(author_comments):
-
     author_comments_text = []
 
     for comment in author_comments:
@@ -24,7 +32,8 @@ def insert_image_data(author_comments):
                         urllib.request.urlretrieve(image_urls[i], image_path)
                     except Exception as error:
                         no_errors = False
-                        print("Encountered an error when retrieving image number: %s topic_id: %s url: %s: " % (str(i), topic_id, image_urls[i]), error)
+                        print("Encountered an error when retrieving image number: %s topic_id: %s url: %s: " % (
+                        str(i), topic_id, image_urls[i]), error)
 
                     if no_errors:
                         image_insert_string = ('image_insert_here: %s' % image_urls[i])

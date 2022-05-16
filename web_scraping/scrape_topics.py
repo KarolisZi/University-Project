@@ -3,6 +3,14 @@ import requests
 from values import constant
 import time
 
+"""
+================================================================================================
+
+FUNCTIONS FOR RETRIEVING TOPIC (THREAD) DATA FROM THE FORUM
+
+================================================================================================
+"""
+
 headers = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET',
@@ -13,18 +21,17 @@ headers = {
 }
 
 
+# Retrieve number of topic pages in the forum
 def fetch_number_of_pages():
-
     ids = fetch_last_post_page_id()
 
-    pages_no = int(int(ids[1])/40+1)
+    pages_no = int(int(ids[1]) / 40 + 1)
 
     return pages_no
 
 
-# Returns the URL of the last post pages
+# Retrieve the last post page id
 def fetch_last_post_page_id():
-
     html_content = requests.get(constant.FIRST_PAGE_URL, headers).text
 
     while 'Too fast / overloaded (503)' in html_content:
@@ -55,9 +62,8 @@ def fetch_last_post_page_id():
     return result
 
 
-# Calculates all pages links from first one to the last because their ending goes up by 40 per each page
+# Generates all page URLS based on the first and alst page id
 def generate_all_post_page_links():
-
     ids = fetch_last_post_page_id()
 
     links = []
@@ -70,7 +76,6 @@ def generate_all_post_page_links():
 
 # Returns all posts from a given URL
 def fetch_post_data(url):
-
     results = []
     html_content = requests.get(url, headers).text
 

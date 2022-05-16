@@ -2,6 +2,14 @@ from bs4 import BeautifulSoup
 import requests
 import time
 
+"""
+================================================================================================
+
+FUNCTIONS FOR RETRIEVING DATA FROM COMMENT SECTION
+
+================================================================================================
+"""
+
 headers = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET',
@@ -65,6 +73,7 @@ def generate_comment_links(url, mode):
     return links
 
 
+# Retrieve comments from a given URL
 def fetch_comments(url):
     comments = []
 
