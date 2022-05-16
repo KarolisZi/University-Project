@@ -1,6 +1,5 @@
 from web_scraping import scrape_sheets
 from database import crud_topic
-from database import create_table
 from database import crud_sheets
 from information_cleaning import clean_spreadsheets
 from alive_progress import alive_bar
@@ -14,50 +13,33 @@ CONTROL OPERATIONS FOR GOOGLE SHEETS DATA RETRIEVAL
 """
 
 
+# Form an array of data based on the operation mode
 def populate_database_sheets(mode):
-
     data = crud_topic.read('topic[topic_id, sheet_ids]', [])
+    filtered_data = [tup for tup in data if tup[1] is not None and tup[1] != []]
 
-    create_table.google_sheets()
+    if mode.isnumeric() and int(mode) < len(filtered_data):
+        filtered_data = filtered_data[0:int(mode)]
 
-    if mode == "all":
-        create_all_sheet_records(data)
-    elif mode.isnumeric():
-        create_x_sheet_records(data, int(mode))
-
-
-def create_all_sheet_records(data):
-    with alive_bar(len(data), title='Sheets') as bar:
-        for ids in data:
-
-            sheet_ids = ids[1].replace('{', '').replace('}', '').split(',')
-
-            for sheet_id in sheet_ids:
-
-                sheet_data = scrape_sheets.fetch_sheet_data(sheet_id)
-
-                for sheet in sheet_data:
-                    cleaned_sheet_data = clean_spreadsheets.clean_sheets_data(sheet[1])
-
-                    crud_sheets.create('sheets', [sheet_id, ids[0], sheet[0], cleaned_sheet_data])
-        bar()
+    create_sheet_records(filtered_data)
 
 
-def create_x_sheet_records(data, number):
+# Retrieve and store entries from Google sheets to the database
+def create_sheet_records(data):
+    with alive_bar(len(data), title='Google sheets') as bar:
+        for index, entry in enumerate(data):
 
-    for topic_sheet in data:
+            successful_check = crud_topic.read('successful_transfers[sheet_successful]', entry[0])
 
-        while number > 0:
+            if not successful_check[0][0]:
 
-            for sheet_id in topic_sheet[1]:
+                for sheet_id in entry[1]:
 
-                sheet_data = scrape_sheets.fetch_sheet_data(sheet_id)
+                    sheet_data = scrape_sheets.fetch_sheet_data(sheet_id)
 
-                for sheet in sheet_data:
+                    for sheet in sheet_data:
+                        cleaned_sheet_array = clean_spreadsheets.clean_sheets_data(sheet[1])
 
-                    cleaned_sheet_data = clean_spreadsheets.clean_sheets_data(sheet[1])
+                        crud_sheets.create('populate_sheets', [sheet_id, entry[0], sheet[0], cleaned_sheet_array])
 
-                    crud_sheets.create('sheets', [sheet_id, topic_sheet[0], sheet[0], cleaned_sheet_data])
-
-            number -= 1
-
+            bar()

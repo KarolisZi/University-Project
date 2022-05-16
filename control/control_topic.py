@@ -8,16 +8,15 @@ from datetime import datetime
 
 """
 ================================================================================================
-CONTROL OPERATIONS FOR THE MAIN PAGE DATA (TOPICS):
-    @create_one_page_post_records_in_database(): scrape the first page of the forum
-    @create_all_post_records_in_database(): scrape all pages of the forum
-    @populate_database_main_page(): create database, choose how many pages to scrape
+
+CONTROL OPERATIONS FOR RETRIEVING DISTINCT TOPICS (THREADS)
+    
 ================================================================================================
 """
 
 
+# Retrieve, clean and store topic information in the database
 def populate_database(mode):
-
     all_urls, date, date_count_check = [], [], 0
 
     # ONE PAGE
@@ -78,50 +77,41 @@ def populate_database(mode):
             bar()
 
 
-# GO THROUGH TOPICS AND UPDATE THOSE WHICH LAST_POST_TIME IN THE DATABASE DIFFERS FROM THE ONE ON THE WEBSITE
-# BASED ON LAST STORED VALUE OF REPLIES, ALSO DEDUCE HOW MANY COMMENTS HAVE TO BE UPDATED AS WELL
+# Retrieve topics which have received more replies since the last scarping
 def update():
     count = 0
-    # IDEA: GET URLS BY DATE
-    # Generates all forum post pages from the first to last URL
+
     all_urls = scrape_topics.generate_all_post_page_links()
 
-    # Fetch every post in every page that has "BOUNTY" in the name
     for url in all_urls:
 
-        # Retrieve all topics from a link
         all_topics = scrape_topics.fetch_post_data(url)
 
         for topic in all_topics:
 
-            # Clean the data and prepare for Database storage
             topic_object = clean_topic.clean_topic_data(topic, 'updates')
 
-            # Retrieves [last_post_time, replies] for provided topic_id
             time_replies = crud_topic.read('topic[last_post_time, replies]', topic_object.get_topic_id())
             now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-            # Check if an entry exists in the topic (new topic updates)
+            # DETECT NEW TOPICS (THREADS)
             if time_replies is None:
-                # Insert topic and a reminder for comment updates
                 crud_topic.create('populate_successful_transfers', [topic_object])
                 crud_topic.create('populate_topic', [topic_object])
                 crud_comments.create('populate_comments_update',
                                      [topic_object.get_topic_id(), 0, topic_object.get_author(), now])
                 count = 0
-
             # Compare two datetime objects (database, website)
             elif time_replies[0] != datetime.strptime(topic_object.get_last_post_time(), '%Y-%m-%d %H:%M:%S'):
 
-                # Retrieve all topic_id from comment_updates
-                comment_update = crud_comments.read('comments_update[topic_id]')
+                comment_update = crud_comments.read('comments_update[topic_id]', [])
+                comments_update = [i[0] for i in comment_update]
 
-                if topic_object.get_topic_id() in comment_update:
+                if topic_object.get_topic_id() in comments_update:
                     crud_comments.create('populate_comments_update',
                                          [topic_object.get_topic_id(), time_replies[1], topic_object.get_author(), now])
                     crud_topic.update('successful_transfers[topic_successful=False]', topic_object.get_topic_id())
 
-                # If the last_post_time has changed, update topic information
                 crud_topic.update('topic[full]', [topic_object.get_replies(), topic_object.get_views(),
                                                   topic_object.get_last_post_time(),
                                                   topic_object.get_last_post_author(), topic_object.get_topic_id()])
@@ -129,9 +119,8 @@ def update():
             else:
                 count += 1
 
-            # If 6 topics have the same time in a row, terminate the program and conclude that all necessary updates have been completed
             if count >= 6:
-                break
+                return
 
 
 def extract_date(string):

@@ -2,21 +2,20 @@ from web_scraping import scrape_imgur
 from database import crud_comments
 from database import crud_topic
 from information_cleaning import clean_comments_author
-from database import create_table
 from alive_progress import alive_bar
 
 """
 ================================================================================================
 
-CONTROL OPERATIONS FOR AUTHOR COMMENTS (IMAGE) ANALYSIS
+CONTROL OPERATIONS FOR EXTRACTING DATA FROM AUTHOR COMMENTS (WITH IMAGES)
 
 ================================================================================================
 """
 
 
+# Select the execution mode
 def populate_database_author(mode):
-    create_table.topic_reward_rules()
-    data = crud_comments.read('author[topic_id, comment_id, image_urls, raw_text]')
+    data = crud_comments.read('author[topic_id, comment_id=1, image_urls, raw_text]', [])
 
     match mode:
         case 'one':
@@ -27,6 +26,7 @@ def populate_database_author(mode):
             create_entries(data, 'all_failed')
 
 
+# Extract, clean and store data from author comments which include pictures
 def create_entries(data, mode):
     with alive_bar(len(data), title='Author post + image') as bar:
 
@@ -36,7 +36,6 @@ def create_entries(data, mode):
 
             successful_check = crud_topic.read('successful_transfers[images_successful]', entry[0])
 
-            # Check if the post_id is 1
             if entry[1] == 1:
 
                 match mode:
@@ -61,8 +60,8 @@ def create_entries(data, mode):
 
                         if mode == 'one':
                             return
-
                     except Exception as error:
+                        print(error)
                         no_errors = False
 
                     if no_errors:
