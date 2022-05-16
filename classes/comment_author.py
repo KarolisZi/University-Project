@@ -1,5 +1,5 @@
 class Author:
-    def __init__(self, topic_id=None, comment_id=None, text_data=[], image_data=[], image_check=None, image_urls=[], post_time=0):
+    def __init__(self, topic_id=None, comment_id=None, text_data=[], image_data=[], image_check=None, image_urls=[], post_time=0, urls = []):
         self.topic_id = topic_id
         self.comment_id = comment_id
         self.text_data = text_data
@@ -7,6 +7,7 @@ class Author:
         self.image_check = image_check
         self.image_urls = image_urls
         self.post_time = post_time
+        self.urls = urls
 
     def get_topic_id(self):
         return self.topic_id
@@ -49,3 +50,9 @@ class Author:
 
     def set_post_time(self, post_time):
         self.post_time = post_time
+
+    def get_urls(self):
+        return self.urls
+
+    def set_urls(self, urls):
+        self.urls.append(urls)
