@@ -8,13 +8,14 @@ import re
 
 """
 ========================================================================================================================
-DATA EXTRACTION PART FOR AUTHOR COMMENTS (Image links, image_check, post_time, username, etc...)
 
- @ extract_data_from_author_comments() - extracts data from author comments
+DATA EXTRACTION FOR AUTHOR COMMENTS
+
 ========================================================================================================================
 """
 
 
+# Prepare author comments for storage in the database, check if it contains any images or not
 def clean_comments(author_comments, topic_id):
     author_object_array = extract_post_data(author_comments)
     images, comments_text = False, []
@@ -33,6 +34,7 @@ def clean_comments(author_comments, topic_id):
     return author_object_array
 
 
+# Retrieve post data of the author comment
 def extract_post_data(author_comments):
     results = []
 
@@ -49,6 +51,11 @@ def extract_post_data(author_comments):
 
             # Retrieve the post form post & header
             post = author_comments[i].find('div', class_='post')
+
+            # Get all post links
+            href_tags = post.find_all(href=True)
+            for tag in href_tags:
+                author.set_urls(tag['href'])
 
             # Get the post and image_urls
             images_comment = extract_image_urls(post)
@@ -67,6 +74,7 @@ def extract_post_data(author_comments):
     return results
 
 
+# Retrieve image URLS from a comment containing images
 def extract_image_urls(comment):
     image_urls = []
 
@@ -87,13 +95,14 @@ def extract_image_urls(comment):
 
 """
 ========================================================================================================================
-DATA ANALYSIS PART FOR AUTHOR COMMENTS - Analyse the comment itself
 
- @ extract_data_from_author_comments() - extracts data from author comments
+DATA ANALYSIS FOR AUTHOR COMMENTS (with images and with no images)
+
 ========================================================================================================================
 """
 
 
+# Retrieve information from the author comment (with images inserted as text)
 def analyse_author_comment_text(author_comments):
     topic = Topic(None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None)
     reward_pool, reward_allocation, token_names, urls, campaigns_info, event_list = [], [], [], [], [], []
@@ -233,25 +242,27 @@ def analyse_author_comment_text(author_comments):
 
 FUNCTIONS TO EXTRACT SPREADSHEET LINKS AND IDS FROM AUTHOR COMMENTS
 
-@ get_spreadsheet_links_from_comments() - extract spreadsheet links from author comments
-@ extract_spreadsheet_ids_from_comments() - extracts spreadsheet ids from spreadsheet links
-
 ========================================================================================================================
 """
 
 
+# extracts spreadsheet ids from spreadsheet links
 def extract_spreadsheet_ids(author_comments):
     sheet_ids = []
 
     links = extract_spreadsheet_links(author_comments)
 
     for link in links:
-        # SPLIT
-        sheet_ids.append(link.split('/')[5])
+        # FIX ERROR sheet_ids.append(link.split('/')[5]). IndexError: list index out of range
+
+        link_decomposed = link.split('/')
+
+        if len(link_decomposed) >= 6:
+            sheet_ids.append(link_decomposed[5])
 
     return sheet_ids
 
-
+# extract spreadsheet links from author comments
 def extract_spreadsheet_links(author_comments):
     spreadsheet_links = []
 
@@ -273,7 +284,6 @@ def extract_spreadsheet_links(author_comments):
             for link in post_links:
 
                 if regex.spreadsheet_pattern.match(link.get('href')):
-                    print(link.get('href'))
                     spreadsheet_links.append(link.get('href'))
 
     return spreadsheet_links

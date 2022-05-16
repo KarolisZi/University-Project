@@ -7,12 +7,11 @@ from values import regex
 
 HELPER FUNCTIONS USED FOR COMMENT AND TOPIC CLEANING
 
-@ convert_time() - converts the time from 12-hour format to 24-hour format
 ========================================================================================================================
 """
 
 
-# Converts time to 24-hour format and date to number format
+# Converts time to 24-hour format (from 12-hour format) and date to number format
 def convert_time(last_post_time):
     if "Today" in last_post_time:
 
@@ -35,12 +34,14 @@ def convert_time(last_post_time):
         return out_time
 
 
+# Retrieve topic and page id from URL
 def get_topic_ids(url):
     id_12 = url.split('=')[-1].split('.')
 
     return id_12
 
 
+# Extract the time a comment was made and the comment id
 def extract_post_time_and_id(comment):
     # Retrieve post and header
     header_post = comment.find('td', class_="td_headerandpost")
@@ -59,6 +60,7 @@ def extract_post_time_and_id(comment):
     return [time, id]
 
 
+# Extract token name form the topic name
 def extract_token_name(topic):
     possible_token_names = []
     token_name = ''
@@ -115,6 +117,7 @@ def extract_token_name(topic):
     return possible_token_names
 
 
+# Check if a potential TOKEN name contains any of these symbols
 def symbols_abbreviations_check(word_to_analyse):
     # Array of words that should not be equal to the TOKEN name
     abbreviations = ['ETH', 'BTC', 'NFT', 'USD', 'ERC20', 'BEP20', 'APY', 'POOL', 'Million', 'BUSD', 'KYC']

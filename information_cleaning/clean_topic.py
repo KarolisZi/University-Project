@@ -3,22 +3,14 @@ from classes.topic import Topic
 from values import regex
 from information_cleaning import helper_functions
 
-
 """
 =================================================================================================================
-DATA CLEANING PART FOR HOME PAGE DATA
-
- @ clean_topic_data() - extracts data from the comment and prepares for storage in the database
- @ extract_id_from_url - retrieves the topic id from the URL
- @ retrieve_last_author() - retrieves the topics last post author
- @ clean_topic() - removes redundant information from the topic title
- @ extract_coin_name() - retrieves the TOKEN name from the topic
+DATA CLEANING PART FOR TOPIC (THREAD) DATA
 ================================================================================================================
 """
 
 
-# Cleans topic data and returns:
-# [Link, Topic, Started by, Replies, Views, Last post time, Last post author]
+# Extracts topic related information from the retrieved data
 def clean_topic_data(column, mode):
     topic = Topic(None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None)
 
@@ -40,11 +32,12 @@ def clean_topic_data(column, mode):
             return topic
 
 
+# Retrieve topic id from the URL
 def extract_id_from_url(url):
-
     return url.split('.')[-2].split('=')[-1]
 
 
+# Retrieve last post author
 def retrieve_last_post_author(last_post_author):
     last_post_author = last_post_author.strip('\n').strip('\t')
 
@@ -55,7 +48,7 @@ def retrieve_last_post_author(last_post_author):
     return last_post_author
 
 
-# Clean last topic line
+# Clean last topic subject line
 def clean_topic(topic):
     # The number of emojis used
     emoji_len = len(re.findall(regex.emoji_pattern, topic))
@@ -84,4 +77,3 @@ def clean_topic(topic):
     topic = topic.strip()
 
     return topic
-

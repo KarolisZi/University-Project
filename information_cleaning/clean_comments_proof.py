@@ -2,7 +2,16 @@ from values import regex
 from information_cleaning import helper_functions
 from classes.comment_proof import Proof
 
+"""
+========================================================================================================================
 
+DATA CLEANING FOR COMMENTS OF PROOF
+
+========================================================================================================================
+"""
+
+
+# Clean comments and prepare for storage in the database
 def clean_comments(proof_comments):
     results = []
 

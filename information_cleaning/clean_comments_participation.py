@@ -3,7 +3,16 @@ from information_cleaning import helper_functions
 from classes.comment_participation import Participation
 import re
 
+"""
+========================================================================================================================
 
+DATA CLEANING FOR PARTICIPATION COMMENTS
+
+========================================================================================================================
+"""
+
+
+# Prepare comments for storage in the database
 def clean_comments(participation_comments):
     result = []
 
@@ -51,6 +60,7 @@ def clean_comments(participation_comments):
     return result
 
 
+# Analyse URL contained in a comment and sorted them based on the URL type
 def filter_url(urls, participation_object):
     social_media_handle, participation = [], []
     twitter_links, facebook_links, instagram_links, telegram_links, reddit_links, other_links = [], [], [], [], [], []
@@ -100,9 +110,9 @@ def filter_url(urls, participation_object):
                     participation.append('Other')
 
     if twitter_username is not None:
-        social_media_handle.append('Twitter:'+twitter_username)
+        social_media_handle.append('Twitter:' + twitter_username)
     if facebook_username is not None:
-        social_media_handle.append('Facebook:'+facebook_username)
+        social_media_handle.append('Facebook:' + facebook_username)
 
     participation_object.set_twitter_links(twitter_links)
     participation_object.set_facebook_links(facebook_links)

@@ -5,17 +5,14 @@ from classes.topic import Topic
 
 """
 ========================================================================================================================
-DATA CLEANING PART FOR COMMENT SECTION DATA
 
- @ clean() - calls data cleaning functions on each of the 3 categories + retrieves sheet_ids from author comments
- @ filter_comment_section_data() - filters the comments into 3 categories: PROOF, PARTICIPATION, AUTHOR
+CONTROL DATA CLEANING FUNCTIONS FOR ALL COMMENTS
 
 ========================================================================================================================
 """
 
 
 def clean(comments, topic_author, tables, topic_id):
-
     cleaned_proof_comments, cleaned_participation_comments, cleaned_author_comments = [], [], []
     topic = Topic()
 
@@ -34,6 +31,7 @@ def clean(comments, topic_author, tables, topic_id):
     return [cleaned_proof_comments, cleaned_participation_comments, cleaned_author_comments, topic]
 
 
+# Filter comments based on their type (proof, participation, author)
 def filter_comment_section_data(comments, topic_author):
     proof_comments, participation_comments, author_comments = [], [], []
 
