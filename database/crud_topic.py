@@ -2,6 +2,14 @@ from values import constant
 from database import connect_to_database
 import psycopg2
 
+"""
+========================================================================================================================
+
+CRUD OPERATION RELATED TO TOPIC (THREAD) DATA
+
+========================================================================================================================
+"""
+
 
 def create(name, data):
     no_error, records_to_insert, postgres_insert_query, table_name = True, [], '', ''
@@ -29,9 +37,9 @@ def create(name, data):
                 records_to_insert.append((topic.get_topic_id(),))
 
     for record in records_to_insert:
+        connection = connect_to_database.connect_to_the_database()
+        cursor = connection.cursor()
         try:
-            connection = connect_to_database.connect_to_the_database()
-            cursor = connection.cursor()
             cursor.execute(postgres_insert_query, record)
             connection.commit()
         except (Exception, psycopg2.Error) as error:
@@ -92,6 +100,14 @@ def read(name, data):
             topic_id, table_name = data, constant.DB_SUCCESSFUL_TRANSFERS
             postgres_select_query = """SELECT images_successful FROM """ + table_name + """ WHERE topic_id = %s"""
             record_to_insert = (topic_id,)
+        case 'successful_transfers[sheet_successful]':
+            topic_id, table_name = data, constant.DB_SUCCESSFUL_TRANSFERS
+            postgres_select_query = """SELECT sheet_successful FROM """ + table_name + """ WHERE topic_id = %s"""
+            record_to_insert = (topic_id,)
+        case 'topic[author]':
+            topic_id, table_name = data, constant.DB_TOPIC
+            postgres_select_query = """SELECT author FROM """ + table_name + """ WHERE topic_id = %s"""
+            record_to_insert = (topic_id,)
 
     try:
         if not record_to_insert:
@@ -107,6 +123,7 @@ def read(name, data):
         return result
     except (Exception, psycopg2.Error) as error:
         print("Failed to read records from table %s:" % table_name, error)
+        raise error
     finally:
         if connection:
             cursor.close()
@@ -165,30 +182,8 @@ def update(name, data):
 
     except (Exception, psycopg2.Error) as error:
         print("Failed to update records in the table %s:" % table_name, error)
+        raise error
     finally:
         if connection:
             cursor.close()
             connection.close()
-
-# def delete(name, data):
-#     connection = connect_to_database.connect_to_the_database()
-#     cursor = connection.cursor()
-#
-#     table_name, postgres_delete_query, record_to_insert = '', '', ''
-#
-#     match name:
-#         case 'topic_transfer':
-#             table_name, topic_id = constant.DB_SUCCESSFUL_TRANSFERS, data
-#             postgres_delete_query = """DELETE FROM """ + table_name + """ WHERE topic_id = %s"""
-#             record_to_insert = (topic_id,)
-#
-#     try:
-#         cursor.execute(postgres_delete_query, record_to_insert)
-#         connection.commit()
-#
-#     except (Exception, psycopg2.Error) as error:
-#         print("Failed to delete record in the table %s:" % table_name, error)
-#     finally:
-#         if connection:
-#             cursor.close()
-#             connection.close()

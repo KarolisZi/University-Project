@@ -3,13 +3,11 @@ from values import constant
 
 
 def connect_to_the_database():
-    connection = psycopg2.connect(
+    return psycopg2.connect(
         host="localhost",
-        database="Project",
+        database="university_project",
         user="postgres",
-        password="admin",
+        password="admin123",
         port="5432",
-        options="-c search_path=dbo,"+constant.SCHEMA
+        options="-c search_path=dbo," + constant.SCHEMA
     )
-
-    return connection
