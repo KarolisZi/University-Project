@@ -4,26 +4,17 @@ from database import crud_topic
 from information_cleaning import clean_comments_author
 from alive_progress import alive_bar
 
-"""
-================================================================================================
 
-CONTROL OPERATIONS FOR EXTRACTING DATA FROM AUTHOR COMMENTS (WITH IMAGES)
-
-================================================================================================
-"""
-
-
-# Select the execution mode
 def populate_database_author(mode):
     data = crud_comments.read('author[topic_id, comment_id=1, image_urls, raw_text]', [])
 
     match mode:
         case 'one':
-            create_entries(data, 'one')
-        case 'all_new':
             create_entries(data, 'all_new')
-        case 'all_new_failed':
+        case 'all_new':
             create_entries(data, 'all_failed')
+        case 'all_new_failed':
+            create_entries(data, 'all_new_failed')
 
 
 # Extract, clean and store data from author comments which include pictures
