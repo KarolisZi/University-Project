@@ -1,6 +1,7 @@
 from database import crud_analysis
 import matplotlib.pyplot as plt
 from values import constant
+from values import regex
 from analysis import helper_functions
 import numpy as np
 
@@ -185,8 +186,178 @@ def topic_lifespan(mode):
 def reward_allocation():
     data, clean_data = crud_analysis.read('topic[reward_allocation]', []), []
 
+    campaign_counter = {'Twitter': [], 'Facebook': [], 'Reddit': [], 'YouTube': [], 'LinkedIn': [],
+                        'Instagram': [], 'Telegram': [], 'TikTok': [], 'Article': [], 'Video': [], 'Blog': [],
+                        'Medium': [], 'Discord': [], 'Signature': [], 'Translation': [], 'Other': []}
+
     for index, entry in enumerate(data):
         temp = entry[0].replace(u'\xa0', u' ')
-        print(temp)
-        clean_data.append(temp)
+        temp = temp.replace('{', '')
+        temp = temp.replace('{', '')
+        temp = temp.replace('"', '')
+        temp = temp.replace('\'', '')
+        words = temp.split(',')
+        for word in words:
+            percentage = regex.percentage.search(word)
+            if 'TWITTER' in word.upper():
+                if percentage:
+                    campaign_counter['Twitter'].append(percentage.group(0))
+            elif "FACEBOOK" in word.upper():
+                if percentage:
+                    campaign_counter['Facebook'].append(percentage.group(0))
+            elif "REDDIT" in word.upper():
+                if percentage:
+                    campaign_counter['Reddit'].append(percentage.group(0))
+            elif "YOUTUBE" in word.upper():
+                if percentage:
+                    campaign_counter['YouTube'].append(percentage.group(0))
+            elif "LINKEDIN" in word.upper():
+                if percentage:
+                    campaign_counter['LinkedIn'].append(percentage.group(0))
+            elif "INSTAGRAM" in word.upper():
+                if percentage:
+                    campaign_counter['Instagram'].append(percentage.group(0))
+            elif "TELEGRAM" in word.upper():
+                if percentage:
+                    campaign_counter['Telegram'].append(percentage.group(0))
+            elif "TIKTOK" in word.upper():
+                if percentage:
+                    campaign_counter['TikTok'].append(percentage.group(0))
+            elif "ARTICLE" in word.upper():
+                if percentage:
+                    campaign_counter['Article'].append(percentage.group(0))
+            elif "VIDEO" in word.upper():
+                if percentage:
+                    campaign_counter['Video'].append(percentage.group(0))
+            elif "BLOG" in word.upper():
+                if percentage:
+                    campaign_counter['Blog'].append(percentage.group(0))
+            elif "MEDIUM" in word.upper():
+                if percentage:
+                    campaign_counter['Medium'].append(percentage.group(0))
+            elif "DISCORD" in word.upper():
+                if percentage:
+                    campaign_counter['Discord'].append(percentage.group(0))
+            elif "SIGNATURE" in word.upper():
+                if percentage:
+                    campaign_counter['Signature'].append(percentage.group(0))
+            elif "TRANSLATION" in word.upper():
+                if percentage:
+                    campaign_counter['Translation'].append(percentage.group(0))
+            else:
+                if percentage:
+                    campaign_counter['Other'].append(percentage.group(0))
 
+    temp = []
+    for entry in campaign_counter['Twitter']:
+        temp.append(int(entry.replace('%', '')))
+    temp.sort()
+    campaign_counter['Twitter'] = temp
+
+    temp = []
+    for entry in campaign_counter['Facebook']:
+        temp.append(int(entry.replace('%', '')))
+    temp.sort()
+    campaign_counter['Facebook'] = temp
+
+    temp = []
+    for entry in campaign_counter['Reddit']:
+        temp.append(int(entry.replace('%', '')))
+    temp.sort()
+    campaign_counter['Reddit'] = temp
+
+    temp = []
+    for entry in campaign_counter['YouTube']:
+        temp.append(int(entry.replace('%', '')))
+    temp.sort()
+    campaign_counter['YouTube'] = temp
+
+    temp = []
+    for entry in campaign_counter['LinkedIn']:
+        temp.append(int(entry.replace('%', '')))
+    temp.sort()
+    campaign_counter['LinkedIn'] = temp
+
+    temp = []
+    for entry in campaign_counter['Instagram']:
+        temp.append(int(entry.replace('%', '')))
+    temp.sort()
+    campaign_counter['Instagram'] = temp
+
+    temp = []
+    for entry in campaign_counter['Telegram']:
+        temp.append(int(entry.replace('%', '')))
+    temp.sort()
+    campaign_counter['Telegram'] = temp
+
+    temp = []
+    for entry in campaign_counter['TikTok']:
+        temp.append(int(entry.replace('%', '')))
+    temp.sort()
+    campaign_counter['TikTok'] = temp
+
+    temp = []
+    for entry in campaign_counter['Article']:
+        temp.append(int(entry.replace('%', '')))
+    temp.sort()
+    campaign_counter['Article'] = temp
+
+    temp = []
+    for entry in campaign_counter['Video']:
+        temp.append(int(entry.replace('%', '')))
+    temp.sort()
+    campaign_counter['Video'] = temp
+
+    temp = []
+    for entry in campaign_counter['Blog']:
+        temp.append(int(entry.replace('%', '')))
+    temp.sort()
+    campaign_counter['Blog'] = temp
+
+    temp = []
+    for entry in campaign_counter['Medium']:
+        temp.append(int(entry.replace('%', '')))
+    temp.sort()
+    campaign_counter['Medium'] = temp
+
+    temp = []
+    for entry in campaign_counter['Discord']:
+        temp.append(int(entry.replace('%', '')))
+    temp.sort()
+    campaign_counter['Discord'] = temp
+
+    temp = []
+    for entry in campaign_counter['Signature']:
+        temp.append(int(entry.replace('%', '')))
+    temp.sort()
+    campaign_counter['Signature'] = temp
+
+    temp = []
+    for entry in campaign_counter['Translation']:
+        temp.append(int(entry.replace('%', '')))
+    temp.sort()
+    campaign_counter['Translation'] = temp
+
+    temp = []
+    for entry in campaign_counter['Other']:
+        temp.append(int(entry.replace('%', '')))
+    temp.sort()
+    campaign_counter['Other'] = temp
+
+    # Highest, Lowest, Median, Average, Length
+
+    print('Twitter: %s, %s, %s, %s, %s' % (max(campaign_counter['Twitter']), min(campaign_counter['Twitter']), campaign_counter['Twitter'][int(len(campaign_counter['Twitter'])/2)], round(sum(campaign_counter['Twitter'])/len(campaign_counter['Twitter']), 2), len(campaign_counter['Twitter'])))
+    print('Facebook: %s, %s, %s, %s, %s' % (max(campaign_counter['Facebook']), min(campaign_counter['Facebook']), campaign_counter['Facebook'][int(len(campaign_counter['Facebook'])/2)], round(sum(campaign_counter['Facebook'])/len(campaign_counter['Facebook']), 2), len(campaign_counter['Facebook'])))
+    print('Reddit: %s, %s, %s, %s, %s' % (max(campaign_counter['Reddit']), min(campaign_counter['Reddit']), campaign_counter['Reddit'][int(len(campaign_counter['Reddit'])/2)], round(sum(campaign_counter['Reddit'])/len(campaign_counter['Reddit']), 2), len(campaign_counter['Reddit'])))
+    print('YouTube: %s, %s, %s, %s, %s' % (max(campaign_counter['YouTube']), min(campaign_counter['YouTube']), campaign_counter['YouTube'][int(len(campaign_counter['YouTube'])/2)], round(sum(campaign_counter['YouTube'])/len(campaign_counter['YouTube']), 2), len(campaign_counter['YouTube'])))
+    print('LinkedIn: %s, %s, %s, %s, %s' % (max(campaign_counter['LinkedIn']), min(campaign_counter['LinkedIn']), campaign_counter['LinkedIn'][int(len(campaign_counter['LinkedIn'])/2)], round(sum(campaign_counter['LinkedIn'])/len(campaign_counter['LinkedIn']), 2), len(campaign_counter['LinkedIn'])))
+    print('Instagram: %s, %s, %s, %s, %s' % (max(campaign_counter['Instagram']), min(campaign_counter['Instagram']), campaign_counter['Instagram'][int(len(campaign_counter['Instagram'])/2)], round(sum(campaign_counter['Instagram'])/len(campaign_counter['Instagram']), 2), len(campaign_counter['Instagram'])))
+    print('TikTok: %s, %s, %s, %s, %s' % (max(campaign_counter['TikTok']), min(campaign_counter['TikTok']), campaign_counter['TikTok'][int(len(campaign_counter['TikTok'])/2)], round(sum(campaign_counter['TikTok'])/len(campaign_counter['TikTok']), 2), len(campaign_counter['TikTok'])))
+    print('Article: %s, %s, %s, %s, %s' % (max(campaign_counter['Article']), min(campaign_counter['Article']), campaign_counter['Article'][int(len(campaign_counter['Article'])/2)], round(sum(campaign_counter['Article'])/len(campaign_counter['Article']), 2), len(campaign_counter['Article'])))
+    print('Video: %s, %s, %s, %s, %s' % (max(campaign_counter['Video']), min(campaign_counter['Video']), campaign_counter['Video'][int(len(campaign_counter['Video'])/2)], round(sum(campaign_counter['Video'])/len(campaign_counter['Video']), 2), len(campaign_counter['Video'])))
+    print('Blog: %s, %s, %s, %s, %s' % (max(campaign_counter['Blog']), min(campaign_counter['Blog']), campaign_counter['Blog'][int(len(campaign_counter['Blog'])/2)], round(sum(campaign_counter['Blog'])/len(campaign_counter['Blog']), 2), len(campaign_counter['Blog'])))
+    print('Medium: %s, %s, %s, %s, %s' % (max(campaign_counter['Medium']), min(campaign_counter['Medium']), campaign_counter['Medium'][int(len(campaign_counter['Medium'])/2)], round(sum(campaign_counter['Medium'])/len(campaign_counter['Medium']), 2), len(campaign_counter['Medium'])))
+    print('Discord: %s, %s, %s, %s, %s' % (max(campaign_counter['Discord']), min(campaign_counter['Discord']), campaign_counter['Discord'][int(len(campaign_counter['Discord'])/2)], round(sum(campaign_counter['Discord'])/len(campaign_counter['Discord']), 2), len(campaign_counter['Discord'])))
+    print('Signature: %s, %s, %s, %s, %s' % (max(campaign_counter['Signature']), min(campaign_counter['Signature']), campaign_counter['Signature'][int(len(campaign_counter['Signature'])/2)], round(sum(campaign_counter['Signature'])/len(campaign_counter['Signature']), 2), len(campaign_counter['Signature'])))
+    print('Translation: %s, %s, %s, %s, %s' % (max(campaign_counter['Translation']), min(campaign_counter['Translation']), campaign_counter['Translation'][int(len(campaign_counter['Translation'])/2)], round(sum(campaign_counter['Translation'])/len(campaign_counter['Translation']), 2), len(campaign_counter['Translation'])))
+    print('Other: %s, %s, %s, %s, %s' % (max(campaign_counter['Other']), min(campaign_counter['Other']), campaign_counter['Other'][int(len(campaign_counter['Other'])/2)], round(sum(campaign_counter['Other'])/len(campaign_counter['Other']), 2), len(campaign_counter['Other'])))
